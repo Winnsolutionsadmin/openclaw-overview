@@ -3,1127 +3,826 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenClaw System Overview — Winn AI</title>
+<title>OpenClaw System — Comprehensive Overview</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
   :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --surface2: #1a1a2e;
-    --border: #2a2a3e;
-    --text: #e8e8f0;
-    --text-dim: #8888a0;
-    --accent: #6366f1;
-    --accent2: #8b5cf6;
-    --green: #22c55e;
-    --orange: #f59e0b;
-    --red: #ef4444;
-    --blue: #3b82f6;
-    --cyan: #06b6d4;
-    --pink: #ec4899;
+    --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a2e; --border: #2a2a3e;
+    --text: #e8e8f0; --text-dim: #8888a0; --accent: #6366f1; --accent2: #8b5cf6;
+    --green: #22c55e; --orange: #f59e0b; --red: #ef4444; --blue: #3b82f6;
+    --cyan: #06b6d4; --pink: #ec4899; --yellow: #eab308;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Inter', -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    overflow: hidden;
-    height: 100vh;
-  }
-
-  .deck {
-    height: 100vh;
-    width: 100vw;
-    position: relative;
-  }
-
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+  .deck { height: 100vh; width: 100vw; position: relative; }
   .slide {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 60px 80px;
-    opacity: 0;
-    transform: translateX(60px);
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; justify-content: flex-start;
+    padding: 50px 70px; opacity: 0; transform: translateX(60px);
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    pointer-events: none;
-    overflow-y: auto;
+    pointer-events: none; overflow-y: auto;
   }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit { opacity: 0; transform: translateX(-60px); }
+  .slide.center-v { justify-content: center; }
 
-  .slide.active {
-    opacity: 1;
-    transform: translateX(0);
-    pointer-events: all;
-  }
-
-  .slide.exit {
-    opacity: 0;
-    transform: translateX(-60px);
-  }
-
-  /* Navigation */
-  .nav {
-    position: fixed;
-    bottom: 30px;
-    right: 40px;
-    display: flex;
-    gap: 12px;
-    z-index: 100;
-  }
-
+  .nav { position: fixed; bottom: 24px; right: 36px; display: flex; gap: 10px; z-index: 100; }
   .nav button {
-    width: 48px; height: 48px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text); font-size: 16px; cursor: pointer;
+    transition: all 0.2s; display: flex; align-items: center; justify-content: center;
   }
-
   .nav button:hover { background: var(--accent); border-color: var(--accent); }
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; z-index: 100; }
+  .slide-counter { position: fixed; bottom: 32px; left: 36px; font-size: 12px; color: var(--text-dim); font-weight: 500; z-index: 100; }
 
-  .progress {
-    position: fixed;
-    top: 0; left: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    transition: width 0.4s ease;
-    z-index: 100;
-  }
+  h1 { font-size: 48px; font-weight: 800; line-height: 1.1; margin-bottom: 12px; background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  h2 { font-size: 32px; font-weight: 700; margin-bottom: 24px; color: var(--text); }
+  h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; color: var(--accent); }
+  h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+  .subtitle { font-size: 17px; color: var(--text-dim); font-weight: 400; margin-bottom: 28px; line-height: 1.5; }
+  p { line-height: 1.6; color: var(--text-dim); margin-bottom: 10px; font-size: 14px; }
+  .sm { font-size: 12px; }
+  .xs { font-size: 11px; }
 
-  .slide-counter {
-    position: fixed;
-    bottom: 38px;
-    left: 40px;
-    font-size: 13px;
-    color: var(--text-dim);
-    font-weight: 500;
-    z-index: 100;
-  }
+  .diagram { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin: 12px 0; }
+  .diagram-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 16px; }
 
-  /* Typography */
-  h1 {
-    font-size: 52px;
-    font-weight: 800;
-    line-height: 1.1;
-    margin-bottom: 16px;
-    background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+  .node { padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; min-width: 100px; line-height: 1.3; }
+  .node-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; box-shadow: 0 4px 16px rgba(99,102,241,0.3); }
+  .node-secondary { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+  .node-green { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4); color: var(--green); }
+  .node-orange { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); color: var(--orange); }
+  .node-red { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: var(--red); }
+  .node-blue { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.4); color: var(--blue); }
+  .node-cyan { background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.4); color: var(--cyan); }
+  .node-pink { background: rgba(236,72,153,0.15); border: 1px solid rgba(236,72,153,0.4); color: var(--pink); }
+  .node-yellow { background: rgba(234,179,8,0.15); border: 1px solid rgba(234,179,8,0.4); color: var(--yellow); }
+  .node-sm { padding: 7px 12px; font-size: 11px; min-width: 80px; }
 
-  h2 {
-    font-size: 36px;
-    font-weight: 700;
-    margin-bottom: 32px;
-    color: var(--text);
-  }
+  .arrow { color: var(--text-dim); font-size: 18px; padding: 0 6px; flex-shrink: 0; }
+  .arrow-down { padding: 4px 0; font-size: 18px; color: var(--text-dim); text-align: center; }
 
-  h3 {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    color: var(--accent);
-  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
 
-  .subtitle {
-    font-size: 20px;
-    color: var(--text-dim);
-    font-weight: 400;
-    margin-bottom: 40px;
-    line-height: 1.5;
-  }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .card-stat { font-size: 32px; font-weight: 800; color: var(--text); margin-bottom: 2px; }
+  .card-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
-  p { line-height: 1.6; color: var(--text-dim); margin-bottom: 12px; }
+  .check-list { list-style: none; padding: 0; }
+  .check-list li { padding: 5px 0; font-size: 13px; color: var(--text-dim); display: flex; align-items: flex-start; gap: 8px; line-height: 1.4; }
+  .check-list li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
 
-  /* Diagram containers */
-  .diagram {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px;
-    margin: 20px 0;
-    position: relative;
-    overflow: visible;
-  }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 16px; font-size: 10px; font-weight: 600; margin-right: 4px; margin-bottom: 3px; }
+  .tag-green { background: rgba(34,197,94,0.15); color: var(--green); }
+  .tag-orange { background: rgba(245,158,11,0.15); color: var(--orange); }
+  .tag-red { background: rgba(239,68,68,0.15); color: var(--red); }
+  .tag-blue { background: rgba(59,130,246,0.15); color: var(--blue); }
+  .tag-purple { background: rgba(139,92,246,0.15); color: var(--accent2); }
+  .tag-cyan { background: rgba(6,182,212,0.15); color: var(--cyan); }
+  .tag-pink { background: rgba(236,72,153,0.15); color: var(--pink); }
 
-  .diagram-title {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--accent);
-    margin-bottom: 24px;
-  }
+  .highlight-box { background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); border: 1px solid rgba(99,102,241,0.25); border-radius: 10px; padding: 16px; margin: 12px 0; }
 
-  /* Flow components */
-  .flow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    flex-wrap: wrap;
-    padding: 10px 0;
-  }
+  .use-case { background: var(--surface); border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0; padding: 14px 18px; margin-bottom: 12px; }
+  .use-case-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .use-case-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+  .use-case-flow { margin-top: 6px; font-size: 11px; color: var(--cyan); font-family: 'SF Mono', Monaco, monospace; }
 
-  .flow-vertical {
-    flex-direction: column;
-  }
+  .flow-row { display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap; padding: 6px 0; }
+  .flow-col { display: flex; flex-direction: column; align-items: center; gap: 0; }
 
-  .node {
-    padding: 14px 22px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    text-align: center;
-    min-width: 120px;
-    position: relative;
-    line-height: 1.3;
-  }
+  .metric-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .metric-label { width: 140px; font-size: 12px; color: var(--text-dim); font-weight: 500; }
+  .metric-track { flex: 1; height: 7px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .metric-fill { height: 100%; border-radius: 4px; }
+  .metric-value { width: 45px; text-align: right; font-size: 12px; font-weight: 600; color: var(--text); }
 
-  .node-primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: white;
-    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
-  }
-
-  .node-secondary {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-  }
-
-  .node-green {
-    background: rgba(34, 197, 94, 0.15);
-    border: 1px solid rgba(34, 197, 94, 0.4);
-    color: var(--green);
-  }
-
-  .node-orange {
-    background: rgba(245, 158, 11, 0.15);
-    border: 1px solid rgba(245, 158, 11, 0.4);
-    color: var(--orange);
-  }
-
-  .node-red {
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    color: var(--red);
-  }
-
-  .node-blue {
-    background: rgba(59, 130, 246, 0.15);
-    border: 1px solid rgba(59, 130, 246, 0.4);
-    color: var(--blue);
-  }
-
-  .node-cyan {
-    background: rgba(6, 182, 212, 0.15);
-    border: 1px solid rgba(6, 182, 212, 0.4);
-    color: var(--cyan);
-  }
-
-  .node-pink {
-    background: rgba(236, 72, 153, 0.15);
-    border: 1px solid rgba(236, 72, 153, 0.4);
-    color: var(--pink);
-  }
-
-  .node-small {
-    padding: 8px 14px;
-    font-size: 11px;
-    min-width: 90px;
-  }
-
-  .arrow {
-    color: var(--text-dim);
-    font-size: 20px;
-    padding: 0 8px;
-    flex-shrink: 0;
-  }
-
-  .arrow-down {
-    padding: 6px 0;
-    font-size: 20px;
-    color: var(--text-dim);
-  }
-
-  /* Grid layouts */
-  .grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
-
-  .grid-3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 20px;
-  }
-
-  .grid-4 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 16px;
-  }
-
-  /* Cards */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-  }
-
-  .card h3 { margin-bottom: 8px; }
-
-  .card-stat {
-    font-size: 36px;
-    font-weight: 800;
-    color: var(--text);
-    margin-bottom: 4px;
-  }
-
-  .card-label {
-    font-size: 12px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
-  }
-
-  /* Lists */
-  .check-list {
-    list-style: none;
-    padding: 0;
-  }
-
-  .check-list li {
-    padding: 8px 0;
-    font-size: 15px;
-    color: var(--text-dim);
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    line-height: 1.4;
-  }
-
-  .check-list li::before {
-    content: '✓';
-    color: var(--green);
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-
-  /* Agent table */
-  .agent-row {
-    display: flex;
-    align-items: center;
-    padding: 10px 16px;
-    border-radius: 8px;
-    margin-bottom: 6px;
-    font-size: 13px;
-    gap: 16px;
-  }
-
+  .agent-row { display: flex; align-items: center; padding: 7px 12px; border-radius: 6px; margin-bottom: 4px; font-size: 12px; gap: 12px; }
   .agent-row:nth-child(odd) { background: var(--surface); }
-
-  .agent-emoji { font-size: 20px; width: 30px; text-align: center; }
-  .agent-name { font-weight: 600; width: 100px; color: var(--text); }
-  .agent-model { width: 80px; color: var(--text-dim); font-size: 11px; }
-  .agent-desc { flex: 1; color: var(--text-dim); }
-  .agent-status { width: 70px; text-align: right; font-weight: 600; font-size: 11px; }
+  .agent-emoji { font-size: 16px; width: 24px; text-align: center; }
+  .agent-name { font-weight: 600; width: 90px; color: var(--text); }
+  .agent-model { width: 65px; color: var(--text-dim); font-size: 10px; }
+  .agent-desc { flex: 1; color: var(--text-dim); font-size: 11px; }
+  .agent-status { width: 60px; text-align: right; font-weight: 600; font-size: 10px; }
   .status-active { color: var(--green); }
   .status-phase2 { color: var(--orange); }
   .status-phase3 { color: var(--text-dim); }
 
-  /* Timeline */
-  .timeline {
-    position: relative;
-    padding-left: 30px;
-  }
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .timeline-item { position: relative; margin-bottom: 14px; padding-left: 16px; }
+  .timeline-item::before { content: ''; position: absolute; left: -21px; top: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); }
+  .timeline-date { font-size: 10px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+  .timeline-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .timeline-desc { font-size: 11px; color: var(--text-dim); }
 
-  .timeline::before {
-    content: '';
-    position: absolute;
-    left: 6px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--border);
-  }
+  .belief-entry { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+  .belief-id { font-size: 10px; font-weight: 700; color: var(--accent); margin-right: 6px; }
+  .belief-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .belief-conf { font-size: 10px; color: var(--orange); font-weight: 600; float: right; }
+  .belief-desc { font-size: 11px; color: var(--text-dim); margin-top: 4px; line-height: 1.4; }
+  .belief-tag { display: inline-block; font-size: 9px; padding: 1px 6px; border-radius: 10px; margin-top: 4px; margin-right: 3px; }
 
-  .timeline-item {
-    position: relative;
-    margin-bottom: 20px;
-    padding-left: 20px;
-  }
-
-  .timeline-item::before {
-    content: '';
-    position: absolute;
-    left: -26px;
-    top: 6px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--accent);
-    border: 2px solid var(--bg);
-  }
-
-  .timeline-date {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
-  }
-
-  .timeline-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 2px;
-  }
-
-  .timeline-desc {
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-
-  /* Metric bar */
-  .metric-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-
-  .metric-label {
-    width: 160px;
-    font-size: 13px;
-    color: var(--text-dim);
-    font-weight: 500;
-  }
-
-  .metric-track {
-    flex: 1;
-    height: 8px;
-    background: var(--surface2);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  .metric-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 1s ease;
-  }
-
-  .metric-value {
-    width: 50px;
-    text-align: right;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  /* Use case box */
-  .use-case {
-    background: var(--surface);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 12px 12px 0;
-    padding: 20px 24px;
-    margin-bottom: 16px;
-  }
-
-  .use-case-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 6px;
-  }
-
-  .use-case-desc {
-    font-size: 13px;
-    color: var(--text-dim);
-    line-height: 1.5;
-  }
-
-  .use-case-flow {
-    margin-top: 10px;
-    font-size: 12px;
-    color: var(--cyan);
-    font-family: 'SF Mono', Monaco, monospace;
-  }
-
-  /* Hub and spoke layout */
-  .hub-spoke {
-    position: relative;
-    width: 500px;
-    height: 400px;
-    margin: 0 auto;
-  }
-
-  .hub {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 2;
-  }
-
-  .spoke {
-    position: absolute;
-    z-index: 2;
-  }
-
-  .spoke-line {
-    position: absolute;
-    background: var(--border);
-    z-index: 1;
-  }
-
-  /* Tag */
-  .tag {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    margin-right: 6px;
-    margin-bottom: 4px;
-  }
-
-  .tag-green { background: rgba(34, 197, 94, 0.15); color: var(--green); }
-  .tag-orange { background: rgba(245, 158, 11, 0.15); color: var(--orange); }
-  .tag-red { background: rgba(239, 68, 68, 0.15); color: var(--red); }
-  .tag-blue { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
-  .tag-purple { background: rgba(139, 92, 246, 0.15); color: var(--accent2); }
-
-  /* Title slide special */
-  .title-slide {
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-  }
-
-  .title-slide h1 {
-    font-size: 64px;
-    margin-bottom: 20px;
-  }
-
-  .logo-icon {
-    font-size: 72px;
-    margin-bottom: 24px;
-  }
-
-  .title-meta {
-    display: flex;
-    gap: 32px;
-    justify-content: center;
-    margin-top: 20px;
-  }
-
-  .title-meta-item {
-    font-size: 13px;
-    color: var(--text-dim);
-    font-weight: 500;
-  }
-
-  /* Section divider */
-  .section-divider {
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-  }
-
-  .section-divider h2 {
-    font-size: 48px;
-    margin-bottom: 12px;
-  }
-
-  .section-number {
-    font-size: 120px;
-    font-weight: 900;
-    color: var(--surface2);
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -70%);
-    z-index: 0;
-  }
-
-  .section-divider .subtitle {
-    position: relative;
-    z-index: 1;
-  }
-
-  .section-divider h2 {
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Responsive scroll for dense slides */
-  .scroll-content {
-    max-height: calc(100vh - 140px);
-    overflow-y: auto;
-    padding-right: 10px;
-  }
-
+  .scroll-content { max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 8px; }
   .scroll-content::-webkit-scrollbar { width: 4px; }
   .scroll-content::-webkit-scrollbar-track { background: transparent; }
   .scroll-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    align-items: start;
-  }
+  .title-slide { justify-content: center; align-items: center; text-align: center; }
+  .title-slide h1 { font-size: 56px; margin-bottom: 16px; }
+  .title-meta { display: flex; gap: 28px; justify-content: center; margin-top: 16px; }
+  .title-meta-item { font-size: 12px; color: var(--text-dim); font-weight: 500; }
 
-  .small { font-size: 12px; }
+  .section-divider { justify-content: center; align-items: center; text-align: center; }
+  .section-number { font-size: 100px; font-weight: 900; color: var(--surface2); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -70%); z-index: 0; }
+  .section-divider .subtitle, .section-divider h2 { position: relative; z-index: 1; }
 
-  .highlight-box {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
-    border: 1px solid rgba(99, 102, 241, 0.3);
-    border-radius: 12px;
-    padding: 20px;
-    margin: 16px 0;
-  }
+  .connector-group { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .connector-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 
-  kbd {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 2px 6px;
-    font-size: 12px;
-    font-family: 'SF Mono', Monaco, monospace;
-  }
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.data-table th { text-align: left; padding: 6px 10px; color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+  table.data-table td { padding: 6px 10px; color: var(--text-dim); border-bottom: 1px solid rgba(42,42,62,0.5); }
+  table.data-table tr:hover { background: var(--surface); }
+
+  .mono { font-family: 'SF Mono', Monaco, 'Fira Code', monospace; }
+  .text-green { color: var(--green); }
+  .text-orange { color: var(--orange); }
+  .text-red { color: var(--red); }
+  .text-cyan { color: var(--cyan); }
+  .text-pink { color: var(--pink); }
+  .text-accent { color: var(--accent); }
+  .text-dim { color: var(--text-dim); }
+  .text-white { color: var(--text); }
+  .fw-600 { font-weight: 600; }
+  .fw-700 { font-weight: 700; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-12 { margin-bottom: 12px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mb-20 { margin-bottom: 20px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
 </style>
 </head>
 <body>
-
 <div class="progress" id="progress"></div>
 <div class="slide-counter" id="counter"></div>
-
 <div class="deck" id="deck">
 
-<!-- SLIDE 1: Title -->
-<div class="slide title-slide active">
-  <div class="logo-icon">🐾</div>
-  <h1>OpenClaw System Overview</h1>
-  <p class="subtitle">Personal AI Chief of Staff — Built Feb 11 to Mar 18, 2026</p>
+<!-- ===================== SLIDE 1: TITLE ===================== -->
+<div class="slide title-slide center-v active">
+  <div style="font-size:64px; margin-bottom:20px;">🐾</div>
+  <h1>The Clawdia System</h1>
+  <p class="subtitle" style="max-width:700px;">Personal AI Chief of Staff — Architecture, Intelligence, CRM, Belief System, Revenue Engine, and Self-Evolution</p>
   <div class="title-meta">
-    <span class="title-meta-item">Version 2.5</span>
+    <span class="title-meta-item">v2.5 · 36 Days Built</span>
     <span class="title-meta-item">13 Agents</span>
-    <span class="title-meta-item">37 Cron Jobs</span>
-    <span class="title-meta-item">40+ Skills</span>
+    <span class="title-meta-item">37 Automated Jobs</span>
+    <span class="title-meta-item">47 AI Products</span>
+    <span class="title-meta-item">38 Beliefs Mapped</span>
   </div>
-  <p style="margin-top: 32px; font-size: 13px; color: var(--text-dim);">Jarred Winn · Winn.ventures · Growing Mindfully</p>
+  <p style="margin-top:28px; font-size:12px; color:var(--text-dim);">Jarred Winn · Winn.ventures · Growing Mindfully · Project X / Mima</p>
+  <p style="font-size:11px; color:var(--border); margin-top: 8px;">Navigate: ← → arrow keys, spacebar, or swipe</p>
 </div>
 
-<!-- SLIDE 2: What Is This -->
+<!-- ===================== SLIDE 2: WHAT IS THIS ===================== -->
 <div class="slide">
   <h2>🧠 What Is This System?</h2>
   <div class="two-col">
     <div>
-      <p style="font-size: 16px; color: var(--text); line-height: 1.7; margin-bottom: 24px;">
-        An autonomous AI operations layer that manages email, CRM, research, compliance, finance, and content — running 24/7 on a Mac Mini with cloud infrastructure.
+      <p style="font-size:15px; color:var(--text); line-height:1.7; margin-bottom:20px;">
+        An autonomous AI operations layer that runs 24/7: email triage, CRM intelligence, belief system mapping, content curation, financial monitoring, regulatory compliance, meeting prep, and revenue generation — all coordinated through a multi-agent architecture.
       </p>
       <div class="highlight-box">
-        <h3 style="margin-bottom: 12px;">Core Principle</h3>
-        <p style="font-size: 14px; color: var(--text);">
-          n8n = nervous system (plumbing)<br>
-          OpenClaw = brain (reasoning)<br><br>
-          n8n never makes judgment calls.<br>
-          OpenClaw never polls APIs.
+        <h3 style="margin-bottom:8px;">Core Design Principle</h3>
+        <p style="font-size:13px; color:var(--text);">
+          <strong>n8n</strong> = nervous system (plumbing, webhooks, triggers)<br>
+          <strong>OpenClaw</strong> = brain (reasoning, judgment, synthesis)<br>
+          <strong>CRM</strong> = shared tool, not an agent<br>
+          <strong>Belief System</strong> = compass for content + networking<br><br>
+          n8n never makes judgment calls. OpenClaw never polls APIs.<br>
+          The belief system drives every content decision and networking target.
+        </p>
+      </div>
+      <div class="highlight-box" style="border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.05);">
+        <h3 style="color:var(--green); margin-bottom:6px;">Revenue Target</h3>
+        <p style="font-size:13px; color:var(--text);">
+          $10-20K/month additional revenue via warm lead generation.<br>
+          <em>"Get me warm leads — I'll build trust with any business owner."</em>
         </p>
       </div>
     </div>
     <div>
-      <div class="card" style="margin-bottom: 16px;">
-        <div class="card-stat">36</div>
-        <div class="card-label">Days to build</div>
+      <div class="grid-2" style="gap:10px; margin-bottom:16px;">
+        <div class="card"><div class="card-stat" style="font-size:26px;">13</div><div class="card-label">AI Agents</div></div>
+        <div class="card"><div class="card-stat" style="font-size:26px;">37</div><div class="card-label">Cron Jobs</div></div>
+        <div class="card"><div class="card-stat" style="font-size:26px;">40+</div><div class="card-label">Skills Installed</div></div>
+        <div class="card"><div class="card-stat" style="font-size:26px;">8</div><div class="card-label">Notion DBs</div></div>
+        <div class="card"><div class="card-stat" style="font-size:26px;">38</div><div class="card-label">Beliefs Mapped</div></div>
+        <div class="card"><div class="card-stat" style="font-size:26px;">136</div><div class="card-label">Thinkers Profiled</div></div>
+        <div class="card"><div class="card-stat" style="font-size:26px;">47</div><div class="card-label">AI Products</div></div>
+        <div class="card"><div class="card-stat" style="font-size:26px;">19</div><div class="card-label">Custom Scripts</div></div>
       </div>
-      <div class="grid-2" style="gap: 12px;">
-        <div class="card">
-          <div class="card-stat" style="font-size: 28px;">13</div>
-          <div class="card-label">AI Agents</div>
-        </div>
-        <div class="card">
-          <div class="card-stat" style="font-size: 28px;">37</div>
-          <div class="card-label">Cron Jobs</div>
-        </div>
-        <div class="card">
-          <div class="card-stat" style="font-size: 28px;">40+</div>
-          <div class="card-label">Skills</div>
-        </div>
-        <div class="card">
-          <div class="card-stat" style="font-size: 28px;">6</div>
-          <div class="card-label">Notion DBs</div>
+      <div class="card" style="border-color: rgba(99,102,241,0.3);">
+        <h4>Business Entities Managed</h4>
+        <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+          <div style="display:flex; justify-content:space-between;"><span class="sm text-accent fw-600">Winn.ventures</span><span class="xs text-dim">Advisory, Project X/Mima, L1</span></div>
+          <div style="display:flex; justify-content:space-between;"><span class="sm text-green fw-600">Growing Mindfully</span><span class="xs text-dim">Childcare, enrollment, compliance</span></div>
+          <div style="display:flex; justify-content:space-between;"><span class="sm text-cyan fw-600">Winn.solutions (CA)</span><span class="xs text-dim">S-Corp, team ops</span></div>
+          <div style="display:flex; justify-content:space-between;"><span class="sm text-orange fw-600">Winn Ventures Corp (BVI)</span><span class="xs text-dim">International holding</span></div>
+          <div style="display:flex; justify-content:space-between;"><span class="sm text-pink fw-600">Winn AI Labs</span><span class="xs text-dim">47 AI products for SMBs</span></div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- SLIDE 3: Architecture Overview -->
+<!-- ===================== SLIDE 3: ARCHITECTURE ===================== -->
 <div class="slide">
   <h2>🏗️ System Architecture</h2>
   <div class="diagram">
-    <div class="diagram-title">High-Level Data Flow</div>
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 0;">
-
-      <!-- Input layer -->
-      <div style="display: flex; gap: 16px; margin-bottom: 8px;">
-        <div class="node node-cyan node-small">Gmail Push</div>
-        <div class="node node-cyan node-small">Slack</div>
-        <div class="node node-cyan node-small">Signal</div>
-        <div class="node node-cyan node-small">Webhooks</div>
-        <div class="node node-cyan node-small">Cron Jobs</div>
+    <div class="diagram-title">Complete Data Flow: Input → Processing → Output</div>
+    <div class="flow-col">
+      <div class="connector-row">
+        <div class="node node-cyan node-sm">Gmail Push<br><span class="xs">3 accounts</span></div>
+        <div class="node node-cyan node-sm">Slack<br><span class="xs">13 channels</span></div>
+        <div class="node node-cyan node-sm">Signal<br><span class="xs">DM + groups</span></div>
+        <div class="node node-cyan node-sm">Plaud/Otter<br><span class="xs">Transcripts</span></div>
+        <div class="node node-cyan node-sm">Webhooks<br><span class="xs">n8n triggers</span></div>
+        <div class="node node-cyan node-sm">Cron Jobs<br><span class="xs">37 scheduled</span></div>
       </div>
-
       <div class="arrow-down">▼</div>
-
-      <!-- n8n layer -->
-      <div class="node node-orange" style="min-width: 300px;">
-        ⚡ n8n — Nervous System<br>
-        <span style="font-size: 11px; font-weight: 400;">Filters, routes, triggers — no judgment calls</span>
+      <div class="connector-row">
+        <div class="node node-orange" style="min-width:260px;">⚡ n8n (Hetzner VPS)<br><span class="xs" style="font-weight:400;">Filters junk, routes by type, triggers pipelines — zero judgment</span></div>
+        <div style="padding:0 8px; color:var(--text-dim);">+</div>
+        <div class="node node-yellow" style="min-width:200px;">🔧 Lobster Pipelines<br><span class="xs" style="font-weight:400;">Multi-step workflows with approval gates</span></div>
       </div>
-
       <div class="arrow-down">▼</div>
-
-      <!-- Executive -->
-      <div class="node node-primary" style="min-width: 350px;">
-        🧠 Executive Agent — The Brain<br>
-        <span style="font-size: 11px; font-weight: 400;">Triages, routes, synthesizes, surfaces to Jarred</span>
+      <div class="node node-primary" style="min-width:400px; padding:14px;">
+        🧠 Executive Agent — Central Router<br>
+        <span class="xs" style="font-weight:400;">Triages all inbound → classifies P0-P3 → routes to domain agents → synthesizes → surfaces to Jarred</span>
       </div>
-
       <div class="arrow-down">▼</div>
-
-      <!-- Domain agents -->
-      <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
-        <div class="node node-green node-small">Scribe<br><span style="font-size:10px">Email</span></div>
-        <div class="node node-green node-small">GM<br><span style="font-size:10px">Childcare</span></div>
-        <div class="node node-blue node-small">Scanner<br><span style="font-size:10px">Research</span></div>
-        <div class="node node-blue node-small">Strategist<br><span style="font-size:10px">Thinking</span></div>
-        <div class="node node-pink node-small">Treasurer<br><span style="font-size:10px">Finance</span></div>
-        <div class="node node-pink node-small">Compliance<br><span style="font-size:10px">Legal/Reg</span></div>
+      <div class="connector-row" style="gap:8px;">
+        <div class="node node-green node-sm">✍️ Scribe<br><span class="xs">Email drafts</span></div>
+        <div class="node node-green node-sm">🌱 GM<br><span class="xs">Enrollment</span></div>
+        <div class="node node-blue node-sm">🔍 Scanner<br><span class="xs">Research</span></div>
+        <div class="node node-blue node-sm">💭 Strategist<br><span class="xs">Thinking</span></div>
+        <div class="node node-pink node-sm">💰 Treasurer<br><span class="xs">Finance</span></div>
+        <div class="node node-pink node-sm">⚖️ Compliance<br><span class="xs">Regulatory</span></div>
       </div>
-
       <div class="arrow-down">▼</div>
-
-      <!-- Output layer -->
-      <div style="display: flex; gap: 16px;">
-        <div class="node node-secondary node-small">Notion</div>
-        <div class="node node-secondary node-small">CRM Files</div>
-        <div class="node node-secondary node-small">Gmail Drafts</div>
-        <div class="node node-secondary node-small">Slack</div>
-        <div class="node node-secondary node-small">Reports</div>
+      <div class="connector-row">
+        <div class="node node-secondary node-sm">Notion<br><span class="xs">8 DBs</span></div>
+        <div class="node node-secondary node-sm">CRM Files<br><span class="xs">Authoritative</span></div>
+        <div class="node node-secondary node-sm">Gmail Drafts<br><span class="xs">Review mode</span></div>
+        <div class="node node-secondary node-sm">Slack<br><span class="xs">Interactive</span></div>
+        <div class="node node-secondary node-sm">Chroma<br><span class="xs">Vector DB</span></div>
+        <div class="node node-secondary node-sm">SQLite DBs<br><span class="xs">Viral + Email</span></div>
       </div>
     </div>
   </div>
+  <p class="sm text-dim" style="text-align:center; margin-top:8px;">All outbound communication goes through Review Mode — nothing sends without Jarred's approval</p>
 </div>
 
-<!-- SLIDE 4: Agent Roster -->
+<!-- ===================== SLIDE 4: AGENT ROSTER ===================== -->
 <div class="slide">
-  <h2>🤖 Agent Roster</h2>
+  <h2>🤖 Agent Roster — 13 Specialized Agents</h2>
   <div class="scroll-content">
-    <div class="agent-row" style="background: var(--surface2); font-weight: 600; font-size: 12px; color: var(--text-dim);">
-      <span class="agent-emoji"></span>
-      <span class="agent-name">AGENT</span>
-      <span class="agent-model">MODEL</span>
-      <span class="agent-desc">FUNCTION</span>
-      <span class="agent-status">STATUS</span>
+    <div class="agent-row" style="background:var(--surface2); font-weight:600; font-size:11px; color:var(--text-dim);">
+      <span class="agent-emoji"></span><span class="agent-name">AGENT</span><span class="agent-model">MODEL</span><span class="agent-desc">FUNCTION</span><span class="agent-status">STATUS</span>
     </div>
-    <div class="agent-row">
-      <span class="agent-emoji">🧠</span>
-      <span class="agent-name">Executive</span>
-      <span class="agent-model">Sonnet</span>
-      <span class="agent-desc">Routing, email triage, CRM, daily digests, approval queue</span>
-      <span class="agent-status status-active">ACTIVE</span>
-    </div>
-    <div class="agent-row">
-      <span class="agent-emoji">💭</span>
-      <span class="agent-name">Strategist</span>
-      <span class="agent-model">Opus</span>
-      <span class="agent-desc">Thinking partner, belief system analysis, knowledge base</span>
-      <span class="agent-status status-active">ACTIVE</span>
-    </div>
-    <div class="agent-row">
-      <span class="agent-emoji">✍️</span>
-      <span class="agent-name">Scribe</span>
-      <span class="agent-model">Sonnet</span>
-      <span class="agent-desc">Email drafting in Jarred's voice, edit-learning</span>
-      <span class="agent-status status-active">ACTIVE</span>
-    </div>
-    <div class="agent-row">
-      <span class="agent-emoji">🌱</span>
-      <span class="agent-name">GM</span>
-      <span class="agent-model">Sonnet</span>
-      <span class="agent-desc">Growing Mindfully ops, enrollment pipeline, parent comms</span>
-      <span class="agent-status status-active">ACTIVE</span>
-    </div>
-    <div class="agent-row">
-      <span class="agent-emoji">🔍</span>
-      <span class="agent-name">Scanner</span>
-      <span class="agent-model">Sonnet</span>
-      <span class="agent-desc">Research monitoring, viral detection, thinker analysis</span>
-      <span class="agent-status status-active">ACTIVE</span>
-    </div>
-    <div class="agent-row">
-      <span class="agent-emoji">💰</span>
-      <span class="agent-name">Treasurer</span>
-      <span class="agent-model">Sonnet</span>
-      <span class="agent-desc">Financial monitoring, anomaly detection, renewals</span>
-      <span class="agent-status status-active">ACTIVE</span>
-    </div>
-    <div class="agent-row">
-      <span class="agent-emoji">⚖️</span>
-      <span class="agent-name">Compliance</span>
-      <span class="agent-model">Sonnet</span>
-      <span class="agent-desc">Regulatory deadlines, licensing, insurance, entity standing</span>
-      <span class="agent-status status-active">ACTIVE</span>
-    </div>
-    <div class="agent-row">
-      <span class="agent-emoji">🤝</span>
-      <span class="agent-name">WMG</span>
-      <span class="agent-model">Sonnet</span>
-      <span class="agent-desc">Winn.ventures deals, clients, Mima/Project X</span>
-      <span class="agent-status status-phase2">PHASE 2</span>
-    </div>
-    <div class="agent-row">
-      <span class="agent-emoji">📜</span>
-      <span class="agent-name">Legal</span>
-      <span class="agent-model">Sonnet</span>
-      <span class="agent-desc">Contracts, review, advisory</span>
-      <span class="agent-status status-phase2">PHASE 2</span>
-    </div>
-    <div class="agent-row">
-      <span class="agent-emoji">🔬</span>
-      <span class="agent-name">Analyst</span>
-      <span class="agent-model">Opus</span>
-      <span class="agent-desc">Deep reasoning, belief system evaluation</span>
-      <span class="agent-status status-phase3">PHASE 3</span>
-    </div>
-    <div class="agent-row">
-      <span class="agent-emoji">🎙️</span>
-      <span class="agent-name">Voice</span>
-      <span class="agent-model">Sonnet</span>
-      <span class="agent-desc">Content drafting in Jarred's voice</span>
-      <span class="agent-status status-phase3">PHASE 3</span>
-    </div>
-    <div class="agent-row">
-      <span class="agent-emoji">📚</span>
-      <span class="agent-name">Curator</span>
-      <span class="agent-model">Sonnet</span>
-      <span class="agent-desc">Knowledge base maintenance, consistency</span>
-      <span class="agent-status status-phase3">PHASE 3</span>
-    </div>
-    <div style="margin-top: 20px; display: flex; gap: 16px;">
-      <span class="tag tag-green">Active: 7 agents</span>
-      <span class="tag tag-orange">Phase 2: 2 agents</span>
-      <span class="tag tag-purple">Phase 3: 3 agents</span>
-    </div>
-    <p style="margin-top: 12px; font-size: 13px;">Model split: Opus for direct conversations + deep reasoning. Sonnet for all automated/cron work (cost control).</p>
-  </div>
-</div>
+    <div class="agent-row"><span class="agent-emoji">🧠</span><span class="agent-name">Executive</span><span class="agent-model">Sonnet</span><span class="agent-desc">Central router: email triage, CRM writes, daily digests, approval queue, meeting prep triggers, contact decay</span><span class="agent-status status-active">ACTIVE</span></div>
+    <div class="agent-row"><span class="agent-emoji">💭</span><span class="agent-name">Strategist</span><span class="agent-model">Opus</span><span class="agent-desc">Thinking partner, belief system analysis, knowledge base proposals, deep reasoning on business strategy</span><span class="agent-status status-active">ACTIVE</span></div>
+    <div class="agent-row"><span class="agent-emoji">✍️</span><span class="agent-name">Scribe</span><span class="agent-model">Sonnet</span><span class="agent-desc">Email drafting in Jarred's voice (dual-mode: written dense + verbal storytelling), edit-learning from corrections</span><span class="agent-status status-active">ACTIVE</span></div>
+    <div class="agent-row"><span class="agent-emoji">🌱</span><span class="agent-name">GM</span><span class="agent-model">Sonnet</span><span class="agent-desc">Growing Mindfully: enrollment pipeline, parent auto-drafts, Brightwheel integration, FAQ learning, staff tracking</span><span class="agent-status status-active">ACTIVE</span></div>
+    <div class="agent-row"><span class="agent-emoji">🔍</span><span class="agent-name">Scanner</span><span class="agent-model">Sonnet</span><span class="agent-desc">Research monitoring: morning intel, midday thinkers, evening viral, early viral detection, belief-aligned content curation</span><span class="agent-status status-active">ACTIVE</span></div>
+    <div class="agent-row"><span class="agent-emoji">💰</span><span class="agent-name">Treasurer</span><span class="agent-model">Sonnet</span><span class="agent-desc">Financial monitoring via Teller.io + Actual Budget: transaction sync, anomaly detection, renewal alerts, spend reports</span><span class="agent-status status-active">ACTIVE</span></div>
+    <div class="agent-row"><span class="agent-emoji">⚖️</span><span class="agent-name">Compliance</span><span class="agent-model">Sonnet</span><span class="agent-desc">Regulatory tracking across 4 entities: CCL licensing, insurance, tax deadlines, FBAR, entity standing, staff certs</span><span class="agent-status status-active">ACTIVE</span></div>
+    <div class="agent-row"><span class="agent-emoji">🤝</span><span class="agent-name">WMG</span><span class="agent-model">Sonnet</span><span class="agent-desc">Winn.ventures deals, client management (Upexi, WCI), Mima/Project X coordination</span><span class="agent-status status-phase2">PHASE 2</span></div>
+    <div class="agent-row"><span class="agent-emoji">📜</span><span class="agent-name">Legal</span><span class="agent-model">Sonnet</span><span class="agent-desc">Contract review, advisory agreements, NDA templates, token addendums</span><span class="agent-status status-phase2">PHASE 2</span></div>
+    <div class="agent-row"><span class="agent-emoji">🔬</span><span class="agent-name">Analyst</span><span class="agent-model">Opus</span><span class="agent-desc">Deep reasoning, belief system evaluation, counter-argument stress-testing</span><span class="agent-status status-phase3">PHASE 3</span></div>
+    <div class="agent-row"><span class="agent-emoji">🎙️</span><span class="agent-name">Voice</span><span class="agent-model">Sonnet</span><span class="agent-desc">Content drafting in Jarred's exact voice profile, Black Cap podcast, EXTINCTION book</span><span class="agent-status status-phase3">PHASE 3</span></div>
+    <div class="agent-row"><span class="agent-emoji">📚</span><span class="agent-name">Curator</span><span class="agent-model">Sonnet</span><span class="agent-desc">Knowledge base governance, contradiction detection, consistency enforcement</span><span class="agent-status status-phase3">PHASE 3</span></div>
+    <div class="agent-row"><span class="agent-emoji">🛡️</span><span class="agent-name">Sentinel</span><span class="agent-model">Sonnet</span><span class="agent-desc">Twitter/X viral detection, networking intelligence, social monitoring</span><span class="agent-status status-phase3">PHASE 3</span></div>
 
-<!-- SLIDE 5: Email Pipeline -->
-<div class="slide">
-  <h2>📧 Email Triage Pipeline</h2>
-  <p class="subtitle">Push-based email processing across 3 accounts with intelligent classification</p>
-
-  <div class="diagram">
-    <div class="diagram-title">Email Flow: Inbound → Triage → Action</div>
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 0;">
-      <div style="display: flex; gap: 16px;">
-        <div class="node node-cyan node-small">GM Gmail<br><span style="font-size:10px">Pub/Sub Push</span></div>
-        <div class="node node-cyan node-small">Winn.solutions<br><span style="font-size:10px">Polling 10s</span></div>
-        <div class="node node-cyan node-small">Winn.ventures<br><span style="font-size:10px">gog</span></div>
-      </div>
-
-      <div class="arrow-down">▼</div>
-
-      <div class="node node-primary" style="min-width: 350px;">
-        3-Layer Hybrid Scorer<br>
-        <span style="font-size: 11px; font-weight: 400;">Rule Engine → LLM Classification → Behavioral Boost</span>
-      </div>
-
-      <div class="arrow-down">▼</div>
-
-      <div style="display: flex; gap: 16px;">
-        <div class="node node-red node-small">P0<br><span style="font-size:10px">Instant alert</span></div>
-        <div class="node node-orange node-small">P1<br><span style="font-size:10px">Same day</span></div>
-        <div class="node node-blue node-small">P2<br><span style="font-size:10px">This week</span></div>
-        <div class="node node-secondary node-small">P3<br><span style="font-size:10px">When possible</span></div>
-      </div>
-
-      <div class="arrow-down">▼</div>
-
-      <div style="display: flex; gap: 16px;">
-        <div class="node node-green node-small">Slack Triage<br><span style="font-size:10px">Interactive buttons</span></div>
-        <div class="node node-green node-small">Gmail Draft<br><span style="font-size:10px">In Jarred's voice</span></div>
-        <div class="node node-green node-small">Auto-Archive<br><span style="font-size:10px">Noise filtered</span></div>
-      </div>
+    <div style="margin-top:16px; display:flex; gap:12px; align-items: center;">
+      <span class="tag tag-green">Active: 7</span>
+      <span class="tag tag-orange">Phase 2: 2</span>
+      <span class="tag tag-purple">Phase 3: 4</span>
+      <span class="sm text-dim" style="margin-left:12px;">Opus for direct conversations + deep reasoning. Sonnet for all automated/cron work (cost control).</span>
     </div>
-  </div>
 
-  <div class="grid-3" style="margin-top: 16px;">
-    <div class="card">
-      <h3>📋 60+ Sender Rules</h3>
-      <p class="small">Classified senders: VIP, noise, suppress, block. Auto-archive spam without notification.</p>
-    </div>
-    <div class="card">
-      <h3>🔘 Slack Buttons</h3>
-      <p class="small">Complete, Snooze (1h/4h/tomorrow), Block Sender — overflow menus on every triaged email.</p>
-    </div>
-    <div class="card">
-      <h3>📝 Auto-Drafts</h3>
-      <p class="small">GM parent emails get auto-drafted in Jarred's voice. Enrollment responses, tour scheduling, FAQ.</p>
+    <div class="highlight-box" style="margin-top:12px;">
+      <h4>Independent Agent Model (Not Subordinate)</h4>
+      <p class="sm">Each agent has its own workspace, model, tool permissions, and failure isolation. No shared token budgets. No single-point-of-failure orchestrator. Cross-agent communication via structured message protocol with priority levels and goal alignment.</p>
     </div>
   </div>
 </div>
 
-<!-- SLIDE 6: CRM & Contacts -->
+<!-- ===================== SLIDE 5: BELIEF SYSTEM ===================== -->
 <div class="slide">
-  <h2>👥 CRM & Contact Intelligence</h2>
+  <h2>💡 Belief System — 38 Entries, 4 Domains</h2>
+  <p class="subtitle" style="margin-bottom:16px;">Jarred's intellectual framework — catalogued, cross-referenced, and used as compass for content curation, networking, and product direction</p>
+  <div class="scroll-content">
+    <div class="two-col">
+      <div>
+        <div class="diagram" style="padding:16px;">
+          <div class="diagram-title">Domain Map (38 beliefs)</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div class="belief-entry">
+              <span class="belief-id">Domain 1</span><span class="belief-title text-accent">Simulation Theory & Physics</span><span class="belief-conf">8 entries</span>
+              <div class="belief-desc">Core simulation position (90% conviction), dynamic throttling, isolated processing, binary body as QEC, quantum decoherence, perception as rate-limited API</div>
+              <div style="margin-top:4px;"><span class="belief-tag tag-purple">5 ORIGINAL ideas</span><span class="belief-tag tag-red">Strongest: Binary Body as QEC (#4)</span></div>
+            </div>
+            <div class="belief-entry">
+              <span class="belief-id">Domain 2</span><span class="belief-title text-cyan">Consciousness & AI</span><span class="belief-conf">8 entries</span>
+              <div class="belief-desc">Consciousness as computed product (load-bearing belief #9), AI as humanity's extinction risk, proof of human/self, consciousness as random variable</div>
+              <div style="margin-top:4px;"><span class="belief-tag tag-red">Load-bearing: Entry #9</span><span class="belief-tag tag-orange">Key adversary: David Deutsch</span></div>
+            </div>
+            <div class="belief-entry">
+              <span class="belief-id">Domain 3</span><span class="belief-title text-green">Crypto & Business</span><span class="belief-conf">8 entries</span>
+              <div class="belief-desc">Programmable scarcity, integrity-power tradeoff, value transfer hierarchy, network state alignment, gold rush cycle</div>
+            </div>
+            <div class="belief-entry">
+              <span class="belief-id">Domain 4</span><span class="belief-title text-pink">Human Authenticity</span><span class="belief-conf">14 entries</span>
+              <div class="belief-desc">Mathematical uniformity as death, trust as time-tested value, chameleon phase, children as critical vector, thought laziness, EXTINCTION book core</div>
+              <div style="margin-top:4px;"><span class="belief-tag tag-pink">EXTINCTION book spine</span><span class="belief-tag tag-blue">Mima/Trust Origin thesis</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          <h4>5 Genuinely Original Ideas (no prior publication found)</h4>
+          <div style="font-size:12px; color:var(--text-dim); line-height:1.6;">
+            <strong class="text-accent">#2</strong> Dynamic Throttling — dark ages = garbage collection<br>
+            <strong class="text-accent">#3</strong> Isolated Processing — objects in standby until perturbed<br>
+            <strong class="text-accent">#4</strong> Binary Body as QEC — bilateral symmetry = error correction ⭐<br>
+            <strong class="text-accent">#6</strong> Quantum Computing as Substrate Evidence<br>
+            <strong class="text-accent">#7</strong> Perception as Rate-Limited API
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:12px;">How This Drives Everything</h3>
+        <div class="diagram" style="padding:16px;">
+          <div class="diagram-title">Belief System → Action Pipeline</div>
+          <div class="flow-col" style="gap:6px;">
+            <div class="node node-primary node-sm" style="min-width:250px;">38 Beliefs + 136 Thinkers<br><span class="xs">Ideas Lab + Thinkers DB (Notion)</span></div>
+            <div class="arrow-down">▼</div>
+            <div class="connector-row" style="gap:6px;">
+              <div class="node node-blue node-sm">Content<br>Curation</div>
+              <div class="node node-green node-sm">Networking<br>Targeting</div>
+              <div class="node node-pink node-sm">Product<br>Direction</div>
+            </div>
+            <div class="arrow-down">▼</div>
+            <div class="connector-row" style="gap:6px;">
+              <div class="node node-secondary node-sm">Scanner filters<br>articles by<br>belief alignment</div>
+              <div class="node node-secondary node-sm">CRM scores<br>contacts by<br>thesis alignment</div>
+              <div class="node node-secondary node-sm">Mima/Trust Origin<br>built from<br>entries #26, #31</div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="mt-12 mb-8">Thinker Alignment System</h3>
+        <p class="sm mb-8">136 thinkers profiled with positions, alignment scores, divergence analysis</p>
+        <div style="display:flex; flex-direction:column; gap:4px; font-size:11px;">
+          <div style="display:flex; justify-content:space-between; color:var(--text-dim);">
+            <span><strong class="text-white">Nick Bostrom</strong> — Simulation argument</span><span class="text-green">Aligned</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; color:var(--text-dim);">
+            <span><strong class="text-white">David Deutsch</strong> — Constructor theory</span><span class="text-red">Key adversary</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; color:var(--text-dim);">
+            <span><strong class="text-white">Donald Hoffman</strong> — Interface theory</span><span class="text-green">Aligned (#7, #9)</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; color:var(--text-dim);">
+            <span><strong class="text-white">Joscha Bach</strong> — Computational consciousness</span><span class="text-orange">Partial</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; color:var(--text-dim);">
+            <span><strong class="text-white">Penrose & Hameroff</strong> — Orch OR</span><span class="text-green">Aligned (#4, #5)</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; color:var(--text-dim);">
+            <span><strong class="text-white">Balaji Srinivasan</strong> — Network state</span><span class="text-green">Aligned (#16, #19)</span>
+          </div>
+          <div class="text-dim" style="margin-top:4px;">+ 130 more profiled with social reach, accolades, publications, growth metrics</div>
+        </div>
+
+        <h3 class="mt-12 mb-8">EXTINCTION Book Concept</h3>
+        <p class="sm">AI's biggest threat isn't replacing jobs — it's replacing <em>authenticity, emotion, and randomness</em>. 11-chapter structure mapping entries #9, #14, #22-35 into a narrative arc. Written offline as an act of commitment.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SLIDE 6: BELIEF → CONTENT → GROWTH ===================== -->
+<div class="slide">
+  <h2>📡 Beliefs → Content Curation → Growth</h2>
+  <p class="subtitle" style="margin-bottom:16px;">The belief system isn't just mapped — it's the engine that drives content discovery, network expansion, and thought leadership positioning</p>
   <div class="two-col">
     <div>
-      <div class="diagram" style="padding: 24px;">
-        <div class="diagram-title">CRM Architecture</div>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <div class="flow">
-            <div class="node node-primary node-small">New Contact</div>
-            <div class="arrow">→</div>
-            <div class="node node-green node-small">CRM Entry<br><span style="font-size:10px">Markdown (auth)</span></div>
+      <div class="diagram" style="padding:16px;">
+        <div class="diagram-title">Content Curation Pipeline</div>
+        <div class="flow-col" style="gap:4px;">
+          <div class="connector-row" style="gap:6px;">
+            <div class="node node-cyan node-sm">Scanner<br>Morning Intel</div>
+            <div class="node node-cyan node-sm">Scanner<br>Midday Thinkers</div>
+            <div class="node node-cyan node-sm">Scanner<br>Evening Viral</div>
           </div>
-          <div class="flow">
-            <div class="node node-green node-small">Markdown Files</div>
-            <div class="arrow">↔</div>
-            <div class="node node-blue node-small">Notion CRM DB</div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-primary node-sm" style="min-width:300px;">
+            Belief Alignment Filter<br>
+            <span class="xs" style="font-weight:400;">Score content against 38 beliefs. Minimum 8/10 relevancy to surface.</span>
           </div>
-          <div class="flow">
-            <div class="node node-secondary node-small">Weekly Decay</div>
-            <div class="arrow">→</div>
-            <div class="node node-orange node-small">Reach-out Drafts</div>
+          <div class="arrow-down">▼</div>
+          <div class="connector-row" style="gap:6px;">
+            <div class="node node-green node-sm">Thinker<br>Profiling</div>
+            <div class="node node-orange node-sm">Alignment<br>Report</div>
+            <div class="node node-pink node-sm">Content<br>Opportunity</div>
+          </div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-secondary node-sm" style="min-width:300px;">
+            Output: "Their stance / Your stance / Alignment"<br>
+            <span class="xs" style="font-weight:400;">+ bio, social reach, accolades, 12-month growth</span>
           </div>
         </div>
       </div>
 
       <div class="highlight-box">
-        <h3>Decay Formula</h3>
-        <p style="font-family: monospace; font-size: 13px; color: var(--cyan);">
-          strength = base × (0.97 ^ (days / 7))
-        </p>
-        <p class="small" style="margin-top: 8px;">Below 2.0 or 21+ days silence → auto-generate personalized reach-out with 2-3 angles</p>
+        <h4>Standing Orders for Content</h4>
+        <ul class="check-list" style="font-size:11px;">
+          <li>Unique Jarred belief/insight → auto-add to Ideas Lab DB</li>
+          <li>Aligned article → suggest augmented update to existing entry</li>
+          <li>8/10 minimum relevancy threshold to surface</li>
+          <li>Every article includes: thinker bio, social reach, accolades, 12-month growth</li>
+          <li>Cache per-thinker data in Thinkers DB (no re-research)</li>
+        </ul>
       </div>
     </div>
     <div>
-      <h3>Notion Network CRM Fields</h3>
-      <ul class="check-list" style="font-size: 13px;">
-        <li>Name, Title/Role, Organization</li>
-        <li>Relationship Tier & Strength (1.0 scale)</li>
-        <li>Lead State (new → sent → replied → closed)</li>
-        <li>Belief Alignment & Alignment Score</li>
-        <li>Their Thesis + Bridge Opportunity</li>
-        <li>Warm Intro Path</li>
-        <li>Social Handles, Last Contact, Next Action</li>
-        <li>Deal Relevance, Source</li>
-      </ul>
-
-      <div style="margin-top: 20px;">
-        <h3>First-Contact Rule</h3>
-        <p class="small">New person in any channel → immediately create CRM entry → flag Jarred for importance_factor scoring. No contacts fall through.</p>
+      <h3 class="mb-12">How Beliefs Feed the CRM</h3>
+      <div class="diagram" style="padding:16px;">
+        <div class="diagram-title">Network CRM: Belief-Driven Scoring</div>
+        <div style="font-size:12px; color:var(--text-dim); line-height:1.8;">
+          Every contact in the Network CRM has:<br>
+          <span class="text-accent fw-600">Belief Alignment</span> — which of Jarred's 38 beliefs they share<br>
+          <span class="text-accent fw-600">Alignment Score</span> — quantified overlap (0-10)<br>
+          <span class="text-accent fw-600">Their Thesis</span> — what they believe in their own words<br>
+          <span class="text-accent fw-600">Bridge Opportunity</span> — specific connection point<br>
+          <span class="text-accent fw-600">Warm Intro Path</span> — how to reach them<br><br>
+          <span class="text-green fw-600">Result:</span> Every networking target is pre-scored against Jarred's worldview. High-alignment contacts get priority outreach. Content shared with them is pre-filtered for relevance.
+        </div>
       </div>
 
-      <div style="margin-top: 16px;">
-        <h3>Lead States</h3>
-        <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px;">
-          <span class="tag tag-blue">new</span>
-          <span style="color: var(--text-dim);">→</span>
-          <span class="tag tag-blue">researched</span>
-          <span style="color: var(--text-dim);">→</span>
-          <span class="tag tag-purple">enriched</span>
-          <span style="color: var(--text-dim);">→</span>
-          <span class="tag tag-orange">drafted</span>
-          <span style="color: var(--text-dim);">→</span>
-          <span class="tag tag-orange">approved</span>
-          <span style="color: var(--text-dim);">→</span>
-          <span class="tag tag-green">sent</span>
-          <span style="color: var(--text-dim);">→</span>
-          <span class="tag tag-green">replied</span>
+      <h3 class="mt-12 mb-8">Growth Loop</h3>
+      <div class="use-case" style="border-left-color:var(--green);">
+        <div class="use-case-title">Belief → Content → Network → Revenue</div>
+        <div class="use-case-desc">
+          1. Scanner finds content aligned with Jarred's beliefs<br>
+          2. Identifies thinker/author → profiles them in Thinkers DB<br>
+          3. If high-alignment: added to Network CRM as networking target<br>
+          4. Jarred engages → builds relationship → potential deal pipeline<br>
+          5. Content gets repurposed for Black Cap / EXTINCTION / social presence<br>
+          6. Establishes thought leadership in simulation theory + AI authenticity space
         </div>
+      </div>
+
+      <h3 class="mt-12 mb-8">Virality Intelligence</h3>
+      <p class="sm">Viral scoring engine based on Twitter's open-source algorithm. Tracks 12 factors per post. Self-improving model (scanner/virality-model.md updated weekly). Early viral detector runs 4x daily looking for posts &lt;4 hours old with velocity ≥40.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SLIDE 7: CRM DEEP DIVE ===================== -->
+<div class="slide">
+  <h2>👥 CRM — Dual-Layer Intelligence</h2>
+  <div class="scroll-content">
+    <div class="two-col">
+      <div>
+        <div class="diagram" style="padding:16px;">
+          <div class="diagram-title">CRM Architecture</div>
+          <div class="flow-col" style="gap:4px;">
+            <div class="connector-row" style="gap:6px;">
+              <div class="node node-cyan node-sm">Email</div>
+              <div class="node node-cyan node-sm">Meeting</div>
+              <div class="node node-cyan node-sm">Social</div>
+              <div class="node node-cyan node-sm">Referral</div>
+            </div>
+            <div class="arrow-down">▼</div>
+            <div class="node node-primary node-sm" style="min-width:300px;">
+              First-Contact Rule<br>
+              <span class="xs" style="font-weight:400;">New person in ANY channel → immediate CRM entry → flag Jarred for importance</span>
+            </div>
+            <div class="arrow-down">▼</div>
+            <div class="connector-row" style="gap:6px;">
+              <div class="node node-green node-sm">Markdown Files<br><span class="xs">Authoritative</span></div>
+              <div style="padding:0 4px;color:var(--text-dim);">↔</div>
+              <div class="node node-blue node-sm">Notion CRM DB<br><span class="xs">UI + Search</span></div>
+            </div>
+            <div class="arrow-down">▼</div>
+            <div class="connector-row" style="gap:6px;">
+              <div class="node node-orange node-sm">Decay Check<br><span class="xs">Daily 6 AM</span></div>
+              <div class="node node-pink node-sm">Reach-out<br><span class="xs">Auto-drafted</span></div>
+              <div class="node node-secondary node-sm">Meeting Prep<br><span class="xs">24h before</span></div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="mt-12 mb-8">CRM Files Structure</h3>
+        <div style="font-size:12px; color:var(--text-dim); line-height:1.6;">
+          <strong class="text-white">contacts.md</strong> — Full profiles with 13 fields per contact<br>
+          <strong class="text-white">pipeline.md</strong> — Deal stages: initial-contact → discovery → proposal → closed<br>
+          <strong class="text-white">follow-ups.md</strong> — Commitments tracker: who owes what, due dates, goal alignment<br>
+          <strong class="text-white">interactions.md</strong> — Every meeting, call, email logged with commitments + sentiment<br>
+          <strong class="text-white">compliance/</strong> — Entity-level regulatory tracking<br>
+          <strong class="text-white">finances/</strong> — Subscriptions, renewals, anomalies
+        </div>
+
+        <div class="highlight-box" style="margin-top:12px;">
+          <h4>Relationship Decay Formula</h4>
+          <p class="mono sm text-cyan" style="margin-bottom:4px;">strength = base × (0.97 ^ (days_since_last / 7))</p>
+          <p class="xs text-dim">Below 2.0 or 21+ days → auto-generate 2-3 personalized reach-out angles from CRM context. Staged as draft, never auto-sent.</p>
+        </div>
+      </div>
+      <div>
+        <h3 class="mb-8">Contact Profile Example: Allan Marshall</h3>
+        <div class="card" style="font-size:11px; line-height:1.6;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span class="fw-700 text-white">Allan Marshall (Upexi)</span>
+            <span class="tag tag-green">Tier 1</span>
+          </div>
+          <div class="text-dim">
+            <strong>Lead State:</strong> active-client · <strong>Strength:</strong> 8.5/10 · <strong>Importance:</strong> 10/10<br>
+            <strong>Source:</strong> Referral (Scott)<br>
+            <strong>Intent:</strong> Brand building, social media, crypto positioning, AI trading bot<br>
+            <strong>Key Intel:</strong> Founder XPO Logistics ($17B). Self-made, no college. Core value: INTEGRITY. Cut ties with GSR over integrity. Venture investments: xAI, Palantir (early), SpaceX ($50B).<br>
+            <strong>Content Voice:</strong> Humility critical — never "I built" always "I founded a company that became"<br>
+            <strong>Next Action:</strong> Full summary + content strategy by 3/21
+          </div>
+        </div>
+
+        <h3 class="mt-12 mb-8">Notion Network CRM Fields</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:4px;">
+          <span class="tag tag-blue">Name</span><span class="tag tag-blue">Title/Role</span><span class="tag tag-blue">Organization</span>
+          <span class="tag tag-purple">Domain</span><span class="tag tag-purple">Relationship Tier</span><span class="tag tag-purple">Strength (1.0)</span>
+          <span class="tag tag-green">Lead State</span><span class="tag tag-green">Belief Alignment</span><span class="tag tag-green">Alignment Score</span>
+          <span class="tag tag-orange">Their Thesis</span><span class="tag tag-orange">Bridge Opportunity</span><span class="tag tag-orange">Warm Intro Path</span>
+          <span class="tag tag-cyan">Last Contact</span><span class="tag tag-cyan">Next Action</span><span class="tag tag-cyan">Deal Relevance</span>
+          <span class="tag tag-pink">Social Handles</span><span class="tag tag-pink">Source</span>
+        </div>
+
+        <h3 class="mt-12 mb-8">Lead State Flow</h3>
+        <div class="flow-row" style="gap:4px; font-size:11px; justify-content:flex-start;">
+          <span class="tag tag-blue">new</span><span class="text-dim">→</span>
+          <span class="tag tag-blue">researched</span><span class="text-dim">→</span>
+          <span class="tag tag-purple">enriched</span><span class="text-dim">→</span>
+          <span class="tag tag-orange">drafted</span><span class="text-dim">→</span>
+          <span class="tag tag-orange">approved</span><span class="text-dim">→</span>
+          <span class="tag tag-green">sent</span><span class="text-dim">→</span>
+          <span class="tag tag-green">replied</span><span class="text-dim">→</span>
+          <span class="tag tag-purple">closed</span>
+        </div>
+
+        <h3 class="mt-12 mb-8">Meeting Prep (Auto-Triggered)</h3>
+        <p class="sm text-dim">Lobster pipeline fires 24h before any meeting. 7-section output:</p>
+        <ol style="font-size:11px; color:var(--text-dim); padding-left:16px; line-height:1.6;">
+          <li>CRM Snapshot (score, importance, state, interaction count)</li>
+          <li>Recent Activity (their last 7 days: social, publications, news)</li>
+          <li>Value Prop & Personal Hook (what Jarred can offer, specific angles)</li>
+          <li>Red Flags / Objections (reputation, conflicts, topics to avoid)</li>
+          <li>3 Conversation Starters (non-generic, tied to recent activity)</li>
+          <li>Desired Outcome & Next Action (define the ask)</li>
+          <li>Research Links (source URLs for key claims)</li>
+        </ol>
       </div>
     </div>
   </div>
 </div>
 
-<!-- SLIDE 7: GM Enrollment -->
+<!-- ===================== SLIDE 8: EMAIL PIPELINE ===================== -->
 <div class="slide">
-  <h2>🌱 Growing Mindfully — Enrollment Pipeline</h2>
-  <div class="diagram">
-    <div class="diagram-title">Enrollment Flow: Inquiry → Active Student</div>
-    <div style="display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap;">
-      <div class="node node-cyan node-small">Parent Inquiry<br><span style="font-size:10px">Email/Phone</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-blue node-small">Auto-Draft<br><span style="font-size:10px">Gmail draft</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-orange node-small">Tour Scheduled<br><span style="font-size:10px">Ashley M/W/F</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-orange node-small">Tour Complete</div>
-      <div class="arrow">→</div>
-      <div class="node node-primary node-small">Enrollment<br><span style="font-size:10px">Brightwheel</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-green node-small">Active ✓</div>
-    </div>
-  </div>
-
-  <div class="grid-2" style="margin-top: 20px;">
-    <div>
-      <h3>Automated Components</h3>
-      <ul class="check-list">
-        <li>Parent email detection → auto-draft in Jarred's voice</li>
-        <li>Notion pipeline tracking with color-coded action fields</li>
-        <li>Brightwheel packet links auto-included (3 age groups)</li>
-        <li>Start date logic: next Monday (or Monday after for Thu/Fri)</li>
-        <li>Deposit calculation: 2 weeks tuition + $45 enrollment fee</li>
-        <li>FAQ learner: reads Jarred's sent replies nightly, updates knowledge</li>
-      </ul>
-    </div>
-    <div>
-      <h3>Action Required Tags</h3>
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span class="tag tag-red">Awaiting Jarred</span>
-          <span class="small">Needs Jarred's input</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span class="tag tag-orange">Awaiting Family</span>
-          <span class="small">Ball in parent's court</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span class="tag tag-blue">Awaiting Ashley</span>
-          <span class="small">Tour scheduling/follow-up</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span class="tag tag-green">None</span>
-          <span class="small">No action needed</span>
-        </div>
-      </div>
-      <h3>Notion DB</h3>
-      <p class="small">Fields: Child Name, Parent Name/Email/Phone, Stage, Source, Tour Date, Age Group, Priority, Notes, Action Required, Follow-up Due</p>
-    </div>
-  </div>
-</div>
-
-<!-- SLIDE 8: Intelligence Layer -->
-<div class="slide">
-  <h2>🔍 Intelligence & Research Layer</h2>
+  <h2>📧 Email Intelligence System</h2>
   <div class="two-col">
     <div>
-      <div class="diagram" style="padding: 20px;">
-        <div class="diagram-title">Scanner Agent — 4 Daily Crons</div>
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="color: var(--orange); font-size: 12px; width: 70px; font-weight: 600;">6:30 AM</span>
-            <div class="node node-blue node-small" style="flex: 1;">Morning Intel Brief</div>
+      <div class="diagram" style="padding:16px;">
+        <div class="diagram-title">3-Layer Hybrid Email Scorer</div>
+        <div class="flow-col" style="gap:4px;">
+          <div class="connector-row" style="gap:6px;">
+            <div class="node node-cyan node-sm">GM Gmail<br><span class="xs">Pub/Sub &lt;1s</span></div>
+            <div class="node node-cyan node-sm">Winn.solutions<br><span class="xs">Polling 10s</span></div>
+            <div class="node node-cyan node-sm">Winn.ventures<br><span class="xs">gog</span></div>
           </div>
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="color: var(--orange); font-size: 12px; width: 70px; font-weight: 600;">12:30 PM</span>
-            <div class="node node-blue node-small" style="flex: 1;">Midday Thinker Scan</div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-blue node-sm" style="min-width:280px;">Layer 1: Rule Engine<br><span class="xs" style="font-weight:400;">60+ classified senders (VIP/noise/suppress/block)</span></div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-primary node-sm" style="min-width:280px;">Layer 2: LLM Classification<br><span class="xs" style="font-weight:400;">Sonnet prompt for P0-P3 scoring</span></div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-orange node-sm" style="min-width:280px;">Layer 3: Behavioral Boost<br><span class="xs" style="font-weight:400;">Active threads, escalation, tone shift detection</span></div>
+          <div class="arrow-down">▼</div>
+          <div class="connector-row" style="gap:6px;">
+            <div class="node node-red node-sm">P0<br><span class="xs">Instant</span></div>
+            <div class="node node-orange node-sm">P1<br><span class="xs">Today</span></div>
+            <div class="node node-blue node-sm">P2<br><span class="xs">This week</span></div>
+            <div class="node node-secondary node-sm">P3<br><span class="xs">Low</span></div>
           </div>
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="color: var(--orange); font-size: 12px; width: 70px; font-weight: 600;">4x Daily</span>
-            <div class="node node-red node-small" style="flex: 1;">Early Viral Detector</div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="color: var(--orange); font-size: 12px; width: 70px; font-weight: 600;">8:30 PM</span>
-            <div class="node node-pink node-small" style="flex: 1;">Evening Viral + Why-Viral</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="diagram" style="padding: 20px;">
-        <div class="diagram-title">Viral Scoring Engine</div>
-        <div style="font-family: monospace; font-size: 12px; color: var(--cyan); line-height: 1.8;">
-          reply_to_reply: 75× weight<br>
-          direct_reply: 20×<br>
-          profile_click: 12×<br>
-          retweet: 10×<br>
-          bookmark: 5×<br>
-          like: 1× (baseline)<br>
-          <span style="color: var(--text-dim);">+ log2 scaling + time decay + credibility</span>
         </div>
       </div>
     </div>
     <div>
-      <h3>Data Stores</h3>
-      <div class="card" style="margin-bottom: 12px;">
-        <h3 style="color: var(--cyan);">Chroma Vector DB</h3>
-        <p class="small">4,246 chunks across 265 files. Semantic search for "find anything related to X."</p>
+      <h3 class="mb-8">Email Thread DB</h3>
+      <p class="sm text-dim mb-12">SQLite + Gemini vector embeddings. 38 threads, 83 events. Semantic search across email history.</p>
+
+      <h3 class="mb-8">Slack Interactive Triage</h3>
+      <div class="card" style="font-size:11px; line-height:1.6; margin-bottom:12px;">
+        Each triaged email appears in Slack with overflow menu buttons:<br>
+        <span class="tag tag-green">Complete</span> (mark read + archive)<br>
+        <span class="tag tag-orange">Snooze 1h / 4h</span><span class="tag tag-orange">Tomorrow AM</span><br>
+        <span class="tag tag-red">Block Sender</span> (add to permanent block list)<br>
+        Priority badges: <span class="text-red fw-600">P0</span> <span class="text-orange fw-600">P1</span> <span class="text-blue fw-600">P2</span> <span class="text-dim fw-600">P3</span>
       </div>
-      <div class="card" style="margin-bottom: 12px;">
-        <h3 style="color: var(--pink);">Viral Intel DB (SQLite)</h3>
-        <p class="small">Posts, patterns, authors, velocity tracking. CLI: viral-db.py</p>
+
+      <h3 class="mb-8">GM Parent Auto-Drafter</h3>
+      <p class="sm text-dim mb-8">Every 30 min (8AM-6PM M-F): scans GM inbox → detects parent emails → creates Gmail draft in Jarred's exact voice. Enrollment responses, tour scheduling, FAQ answers — all pre-drafted.</p>
+
+      <h3 class="mb-8">Hardened Rules (8 total)</h3>
+      <ul class="check-list" style="font-size:11px;">
+        <li>Date verification: never surface emails &gt;24h old</li>
+        <li>Sent mail check: no prior correspondence + cold pattern = spam</li>
+        <li>Deduplication: never send duplicate nudges</li>
+        <li>Classification file check against 60+ known senders</li>
+        <li>Ignore: verification codes, 2FA, meeting recaps, Buffer, Comcast</li>
+        <li>Silent crons: no notification if nothing actionable</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SLIDE 9: GM ENROLLMENT ===================== -->
+<div class="slide">
+  <h2>🌱 Growing Mindfully — Full Operations</h2>
+  <div class="two-col">
+    <div>
+      <div class="diagram" style="padding:16px;">
+        <div class="diagram-title">Enrollment Pipeline (10-Step Playbook)</div>
+        <div class="flow-col" style="gap:4px;">
+          <div class="node node-cyan node-sm" style="min-width:260px;">1. Parent Inquiry (Squarespace/email/phone)</div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-blue node-sm" style="min-width:260px;">2. Auto-Draft welcome in Jarred's voice</div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-orange node-sm" style="min-width:260px;">3. Tour Scheduled (Ashley — M/W/F 10am)</div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-orange node-sm" style="min-width:260px;">4. Tour Complete → family confirms interest</div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-primary node-sm" style="min-width:260px;">5-9. Brightwheel Setup<br><span class="xs" style="font-weight:400;">Profile → billing plan → invoice → admissions packet → enrollment email</span></div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-green node-sm" style="min-width:260px;">10. Active ✓ (start date: next Monday)</div>
+        </div>
       </div>
-      <div class="card" style="margin-bottom: 12px;">
-        <h3 style="color: var(--orange);">Email Thread DB</h3>
-        <p class="small">38 threads, 83 events. Gemini vector embeddings for semantic email search.</p>
+
+      <div class="highlight-box">
+        <h4>Brightwheel Integration</h4>
+        <p class="xs text-dim">3 admissions packets auto-linked by age group. Deposit: 2 weeks tuition + $45 enrollment fee. Start date logic: next Monday (or Monday after if Thu/Fri inquiry).</p>
       </div>
-      <div class="card">
-        <h3 style="color: var(--green);">Ideas Lab + Thinkers</h3>
-        <p class="small">37 belief entries, 136 thinkers profiled. Alignment scoring, bridge opportunities.</p>
+    </div>
+    <div>
+      <h3 class="mb-8">Automated Components</h3>
+      <ul class="check-list" style="font-size:12px;">
+        <li>Parent email detection → auto-draft in Jarred's voice (every 30 min)</li>
+        <li>Notion pipeline tracking with color-coded Action Required field</li>
+        <li>Brightwheel packet links auto-included per age group</li>
+        <li>FAQ learner: reads Jarred's sent replies nightly, updates knowledge base</li>
+        <li>Compliance tracking: CCL licensing, staff certifications, insurance</li>
+        <li>Email templates captured from Jarred's actual sent emails</li>
+      </ul>
+
+      <h3 class="mt-12 mb-8">Action Required Tags</h3>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; align-items:center; gap:8px;"><span class="tag tag-red">Awaiting Jarred</span><span class="xs text-dim">Needs Jarred's input</span></div>
+        <div style="display:flex; align-items:center; gap:8px;"><span class="tag tag-orange">Awaiting Family</span><span class="xs text-dim">Ball in parent's court</span></div>
+        <div style="display:flex; align-items:center; gap:8px;"><span class="tag tag-blue">Awaiting Ashley</span><span class="xs text-dim">Tour scheduling/follow-up</span></div>
+        <div style="display:flex; align-items:center; gap:8px;"><span class="tag tag-green">None</span><span class="xs text-dim">On track</span></div>
+      </div>
+
+      <h3 class="mt-12 mb-8">Email Templates (from Jarred's actual voice)</h3>
+      <div style="font-size:11px; color:var(--text-dim); line-height:1.6;">
+        <strong class="text-white">Tour Inquiry Response</strong> — warm, personal, available slots<br>
+        <strong class="text-white">Waitlist Spot Available</strong> — upbeat, urgent, action-oriented<br>
+        <strong class="text-white">Enrollment Welcome</strong> — organized, reassuring, 6-step process<br>
+        <strong class="text-white">Packet Reminder</strong> — friendly nudge, deadline-aware<br>
+        <strong class="text-white">First Week Info</strong> — practical, calming, parent-focused<br><br>
+        <em class="text-accent">All templates match Jarred's writing style: warm + professional + personal congratulations + specific availability</em>
+      </div>
+
+      <h3 class="mt-12 mb-8">Compliance for GM Specifically</h3>
+      <p class="xs text-dim">CCL licensing status, COPPA compliance (deadline Apr 22), staff certifications, insurance renewals, payroll via Gusto, Brightwheel admin ops.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SLIDE 10: WINN AI LABS ===================== -->
+<div class="slide">
+  <h2>🚀 Winn AI Labs — 47-Product Revenue Engine</h2>
+  <div class="scroll-content">
+    <div class="two-col">
+      <div>
+        <div class="diagram" style="padding:16px;">
+          <div class="diagram-title">Nightly Autonomous Product Builder (1 AM PT)</div>
+          <div class="flow-col" style="gap:4px;">
+            <div class="node node-secondary node-sm" style="min-width:240px;">Read build-queue.json → next queued product</div>
+            <div class="arrow-down">▼</div>
+            <div class="node node-blue node-sm" style="min-width:240px;">Research: market size, competitors, local demand</div>
+            <div class="arrow-down">▼</div>
+            <div class="node node-primary node-sm" style="min-width:240px;">Build: brand guide + website + strategy</div>
+            <div class="arrow-down">▼</div>
+            <div class="node node-orange node-sm" style="min-width:240px;">Generate: outreach templates + ad campaigns</div>
+            <div class="arrow-down">▼</div>
+            <div class="node node-pink node-sm" style="min-width:240px;">Prospect: scrape 20+ local businesses, score pain</div>
+            <div class="arrow-down">▼</div>
+            <div class="node node-green node-sm" style="min-width:240px;">Deploy to GitHub Pages → queue for Jarred review</div>
+          </div>
+        </div>
+
+        <h3 class="mt-12 mb-8">Product Tiers</h3>
+        <div style="font-size:12px; line-height:1.8;">
+          <strong class="text-red">Tier 1 — Build First:</strong><br>
+          <span class="text-dim">NeverMissAI ($499-799/mo) · AdPilot.ai ($1,499-2,999/mo) · ReviewShield.ai ($999/mo)</span><br>
+          <strong class="text-orange">Tier 2 — Upsell Layer:</strong><br>
+          <span class="text-dim">TextBackAI ($399/mo) · ReviveLeads ($1,499/mo) · InvoiceChaser ($599/mo)</span><br>
+          <strong class="text-blue">Tier 3 — Vertical Expansion:</strong><br>
+          <span class="text-dim">QuoteBot ($799/mo) · PostPilot ($699/mo) · BookkeeperBot ($999/mo)</span><br>
+          <strong class="text-purple">Tier 4 — Industry Verticals:</strong><br>
+          <span class="text-dim">38 more products covering specific industries</span>
+        </div>
+      </div>
+      <div>
+        <div class="grid-2" style="gap:10px; margin-bottom:16px;">
+          <div class="card"><div class="card-stat" style="font-size:24px;">47</div><div class="card-label">Products Designed</div></div>
+          <div class="card"><div class="card-stat" style="font-size:24px;">2</div><div class="card-label">Built & Deployed</div></div>
+          <div class="card"><div class="card-stat" style="font-size:24px;">$10-20K</div><div class="card-label">Monthly Target</div></div>
+          <div class="card"><div class="card-stat" style="font-size:24px;">10:1</div><div class="card-label">Target LTV:CAC</div></div>
+        </div>
+
+        <h3 class="mb-8">Target Geography</h3>
+        <p class="sm text-dim">Phase 1: Sacramento + Placer County (Granite Bay, Roseville, Folsom, El Dorado Hills, Rocklin, Lincoln, Auburn). Phase 2: Greater Sacramento MSA. Phase 3: Northern California. Phase 4: National remote delivery.</p>
+
+        <h3 class="mt-12 mb-8">Pricing Philosophy</h3>
+        <ul class="check-list" style="font-size:11px;">
+          <li>"Peace of mind" positioning — not "tool" pricing</li>
+          <li>Monthly retainers (recurring revenue)</li>
+          <li>No annual contracts (confidence signal)</li>
+          <li>30-day free trial with full setup (high switching cost by Day 30)</li>
+          <li>&lt;5% monthly churn target, NPS &gt;50</li>
+        </ul>
+
+        <h3 class="mt-12 mb-8">The Invisible Architecture</h3>
+        <div class="highlight-box" style="background:rgba(34,197,94,0.05); border-color:rgba(34,197,94,0.25);">
+          <p class="sm text-dim"><strong class="text-green">Winn AI Labs</strong> is invisible to end customers. Each product brand stands alone with its own website, identity, and outreach. Shared engine underneath: OpenClaw deployment per client, unified Stripe billing, shared CRM with brand-level segmentation, autonomous nightly prospecting per vertical.</p>
+        </div>
+
+        <h3 class="mt-12 mb-8">Each Product Website Includes</h3>
+        <p class="xs text-dim">Hero + pain section + solution + 3-step how-it-works + social proof + pricing tiers + FAQ (10 objection-handling questions) + email capture + analytics hooks. Gateway site adds AI Readiness Quiz (8 dimensions, instant score) + booking integration.</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- SLIDE 9: Autonomy Framework -->
+<!-- ===================== SLIDE 11: AUTONOMY & SELF-HEALING ===================== -->
 <div class="slide">
-  <h2>🚦 Autonomy Framework</h2>
-  <p class="subtitle">Three-tier decision model — what the system can do without asking</p>
-
-  <div class="grid-3">
-    <div class="card" style="border-color: rgba(34, 197, 94, 0.4);">
-      <h3 style="color: var(--green);">🟢 GREEN — Act Silently</h3>
-      <ul class="check-list" style="font-size: 12px;">
+  <h2>🚦 Autonomy Framework & Self-Healing</h2>
+  <div class="grid-3" style="margin-bottom:16px;">
+    <div class="card" style="border-color:rgba(34,197,94,0.4);">
+      <h3 style="color:var(--green); font-size:14px;">🟢 GREEN — Act Silently</h3>
+      <ul class="check-list" style="font-size:11px;">
         <li>Archive promotional emails</li>
         <li>Internal file operations</li>
         <li>CRM field updates (touch dates, notes)</li>
         <li>Install missing npm dependencies</li>
         <li>Create daily memory files</li>
-        <li>Update error patterns</li>
-        <li>Archive old logs (>7 days)</li>
+        <li>Update error patterns log</li>
+        <li>Archive old logs (&gt;7 days)</li>
+        <li>Auto-fix known error patterns</li>
       </ul>
     </div>
-    <div class="card" style="border-color: rgba(245, 158, 11, 0.4);">
-      <h3 style="color: var(--orange);">🟡 YELLOW — Act + Log</h3>
-      <ul class="check-list" style="font-size: 12px;">
+    <div class="card" style="border-color:rgba(245,158,11,0.4);">
+      <h3 style="color:var(--orange); font-size:14px;">🟡 YELLOW — Act + Log</h3>
+      <ul class="check-list" style="font-size:11px;">
         <li>Disable a broken plugin</li>
         <li>Restart stalled channel</li>
         <li>Install/update ClawHub skills</li>
-        <li>Auto-fix known error patterns</li>
         <li>Update cron payload text</li>
         <li>Create CRM entries for new contacts</li>
         <li>Generate reach-out drafts (staged)</li>
+        <li>Auto-fix known error patterns</li>
       </ul>
     </div>
-    <div class="card" style="border-color: rgba(239, 68, 68, 0.4);">
-      <h3 style="color: var(--red);">🔴 RED — Requires Approval</h3>
-      <ul class="check-list" style="font-size: 12px;">
+    <div class="card" style="border-color:rgba(239,68,68,0.4);">
+      <h3 style="color:var(--red); font-size:14px;">🔴 RED — Requires Approval</h3>
+      <ul class="check-list" style="font-size:11px;">
         <li>Any outbound communication</li>
         <li>Schedule or cancel meetings</li>
         <li>Edit config or credentials</li>
@@ -1135,561 +834,380 @@
     </div>
   </div>
 
-  <div class="highlight-box" style="margin-top: 24px;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <h3>Self-Healing Loop</h3>
-        <p class="small">Every heartbeat: scan logs → classify errors → auto-fix GREEN tier → log YELLOW tier → alert RED tier. System recovers from common failures without human intervention.</p>
+  <div class="two-col">
+    <div class="diagram" style="padding:16px;">
+      <div class="diagram-title">Self-Healing Heartbeat Loop</div>
+      <div class="flow-col" style="gap:4px;">
+        <div class="connector-row" style="gap:6px;">
+          <div class="node node-secondary node-sm">Scan logs<br><span class="xs">last 200 lines</span></div>
+          <div class="arrow">→</div>
+          <div class="node node-blue node-sm">Classify<br><span class="xs">pattern type</span></div>
+          <div class="arrow">→</div>
+          <div class="node node-green node-sm">Auto-fix<br><span class="xs">GREEN tier</span></div>
+        </div>
+        <div style="height:4px;"></div>
+        <div class="connector-row" style="gap:6px;">
+          <div class="node node-secondary node-sm">Check disk &gt;85%</div>
+          <div class="node node-secondary node-sm">Chroma health</div>
+          <div class="node node-secondary node-sm">Cron failures</div>
+          <div class="node node-secondary node-sm">UNFINISHED.md</div>
+        </div>
       </div>
-      <div style="display: flex; gap: 8px;">
-        <div class="node node-secondary node-small">Detect</div>
-        <div class="arrow">→</div>
-        <div class="node node-secondary node-small">Classify</div>
-        <div class="arrow">→</div>
-        <div class="node node-secondary node-small">Act/Log/Alert</div>
-      </div>
+    </div>
+    <div>
+      <h3 class="mb-8">Self-Evolution Pipeline (3x Daily)</h3>
+      <p class="sm text-dim mb-8">7-phase: Context Load → Gap Scan → Research → Evaluate → Backup (SHA-256) → Implement → Validate. Auto-rollback on regression. 50K token cap per loop.</p>
+      <h3 class="mb-8">Karpathy Loop</h3>
+      <p class="sm text-dim">Takes any skill → runs binary eval assertions → scores → makes ONE change → re-tests → keeps if improved, reverts if not. Loops autonomously until interrupted or perfect score.</p>
     </div>
   </div>
 </div>
 
-<!-- SLIDE 10: Self-Evolution -->
+<!-- ===================== SLIDE 12: FINANCE & COMPLIANCE ===================== -->
 <div class="slide">
-  <h2>🧬 Self-Evolution Pipeline</h2>
-  <p class="subtitle">The system researches and implements its own improvements — with backup & rollback</p>
-
-  <div class="diagram">
-    <div class="diagram-title">7-Phase Evolution Cycle (runs 3× daily: 6 AM, 1 PM, 9 PM)</div>
-    <div style="display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap;">
-      <div class="node node-blue node-small">1. Research<br><span style="font-size:10px">What's new?</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-blue node-small">2. Assess<br><span style="font-size:10px">Does it apply?</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-orange node-small">3. Backup<br><span style="font-size:10px">SHA-256 snapshot</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-primary node-small">4. Implement<br><span style="font-size:10px">Apply change</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-green node-small">5. Validate<br><span style="font-size:10px">Did it work?</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-green node-small">6. Log<br><span style="font-size:10px">Changelog</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-secondary node-small">7. Report<br><span style="font-size:10px">If notable</span></div>
-    </div>
-  </div>
-
-  <div class="grid-2" style="margin-top: 20px;">
-    <div>
-      <h3>Karpathy Loop</h3>
-      <p style="font-size: 13px; color: var(--text-dim); line-height: 1.6;">
-        Inspired by Andrej Karpathy's AutoResearch. Takes any skill, runs it against binary eval assertions, scores output, makes ONE change per cycle, re-tests, keeps if improved, reverts if not. Loops autonomously until interrupted or perfect score.
-      </p>
-      <div style="margin-top: 12px; font-family: monospace; font-size: 12px; color: var(--cyan);">
-        loop: eval → score → mutate → re-eval → keep/revert
-      </div>
-    </div>
-    <div>
-      <h3>Safety Mechanisms</h3>
-      <ul class="check-list">
-        <li>Full SHA-256 backup before every change</li>
-        <li>Automatic rollback if regression detected</li>
-        <li>50K token cap per improvement loop</li>
-        <li>All changes logged to Notion System Changes DB</li>
-        <li>Version tracked in CHANGELOG.md</li>
-        <li>Separate evaluator invocation (no self-grading)</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- SLIDE 11: Finance & Compliance -->
-<div class="slide">
-  <h2>💰 Finance & Compliance Agents</h2>
+  <h2>💰 Finance & Compliance Monitoring</h2>
   <div class="two-col">
     <div>
-      <h3 style="margin-bottom: 16px;">Treasurer Agent</h3>
-      <div class="diagram" style="padding: 20px;">
-        <div class="diagram-title">Financial Monitoring Flow</div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div class="node node-cyan node-small" style="min-width: 100px;">Teller.io API</div>
+      <h3 class="mb-12">Treasurer Agent (4 Crons)</h3>
+      <div class="diagram" style="padding:16px;">
+        <div class="diagram-title">Financial Monitoring</div>
+        <div class="flow-col" style="gap:6px;">
+          <div class="flow-row" style="gap:6px;">
+            <div class="node node-cyan node-sm">Teller.io API</div>
             <div class="arrow">→</div>
-            <div class="node node-secondary node-small">Transaction Sync</div>
+            <div class="node node-secondary node-sm">Daily Sync (6 AM)</div>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div class="node node-secondary node-small" style="min-width: 100px;">Actual Budget</div>
+          <div class="flow-row" style="gap:6px;">
+            <div class="node node-cyan node-sm">Actual Budget</div>
             <div class="arrow">→</div>
-            <div class="node node-orange node-small">Anomaly Detection</div>
+            <div class="node node-orange node-sm">Anomaly Detection</div>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div class="node node-secondary node-small" style="min-width: 100px;">Subscriptions</div>
+          <div class="flow-row" style="gap:6px;">
+            <div class="node node-cyan node-sm">Subscriptions</div>
             <div class="arrow">→</div>
-            <div class="node node-red node-small">Renewal Alerts</div>
+            <div class="node node-red node-sm">Renewal Alerts (6:30 AM)</div>
           </div>
         </div>
       </div>
-      <p class="small" style="margin-top: 12px;">4 crons: daily sync (6 AM), renewal alerts (6:30 AM), weekly spend summary (Sun 8 AM), monthly report (1st of month)</p>
+      <p class="sm text-dim mt-8">Weekly spend summary (Sun 8 AM), monthly financial report (1st of month). Tracks subscriptions, anomalies, and renewal calendar. Invoice/payment monitor runs daily 8 AM M-F.</p>
     </div>
     <div>
-      <h3 style="margin-bottom: 16px;">Compliance Agent</h3>
-      <div class="diagram" style="padding: 20px;">
-        <div class="diagram-title">Regulatory Monitoring</div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div class="node node-blue node-small">Winn Ventures (BVI)</div>
-          <div class="node node-green node-small">Winn.solutions (CA)</div>
-          <div class="node node-pink node-small">Growing Mindfully (Preschool)</div>
+      <h3 class="mb-12">Compliance Agent (4 Crons + Master Calendar)</h3>
+      <div class="card" style="font-size:11px; line-height:1.8; margin-bottom:12px;">
+        <strong class="text-white">Entities Tracked:</strong><br>
+        <span class="tag tag-blue">Winn.solutions (CA S-Corp)</span>
+        <span class="tag tag-green">Growing Mindfully (Preschool)</span>
+        <span class="tag tag-orange">Winn Ventures Corp (BVI)</span>
+        <span class="tag tag-pink">Jarred Personal</span><br><br>
+        <strong class="text-white">Upcoming (Q2 2026):</strong><br>
+        Apr 15 — CA franchise tax $800, Q1 estimated tax, personal returns, Form 5471, FBAR<br>
+        Apr 22 — COPPA compliance deadline ($51,744/violation)<br>
+        Apr 30 — Q1 Form 941, DE-9/DE-9C<br>
+        May 31 — BVI annual license fee<br>
+        Jun 15 — Q2 estimated tax
+      </div>
+      <p class="sm text-dim">Daily check (7 AM), weekly summary (Mon 8:30 AM), monthly standing (1st), quarterly report. Tracks CCL licensing, insurance renewal, staff certifications, entity standing verification.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SLIDE 13: VOICE & CONTENT ===================== -->
+<div class="slide">
+  <h2>🎙️ Voice Profile & Content Pipeline</h2>
+  <div class="two-col">
+    <div>
+      <h3 class="mb-12">Jarred's Voice Profile (Captured)</h3>
+      <div class="card" style="font-size:12px; line-height:1.7; margin-bottom:12px;">
+        <strong class="text-accent">Dual-Mode:</strong><br>
+        <strong class="text-white">Written:</strong> Dense, assertion-first, conclusion→evidence backward. Parentheticals when excited.<br>
+        <strong class="text-white">Verbal:</strong> Storytelling, tangential, 5-10 min arcs. A→B→tangent→back to B→C→marching orders.<br><br>
+        <strong class="text-accent">Adjectives:</strong> Dense, Direct, Coining, Narrative, Vulnerable-when-personal<br><br>
+        <strong class="text-accent">Verbal Tics:</strong> "right?" every 2-3 sentences, "at the end of the day", "kind of", "basically"<br><br>
+        <strong class="text-accent">Hates:</strong> "I hope this email finds you well", generic inspiration, "Let's dive in", corporate buzzwords<br><br>
+        <strong class="text-accent">Context Tones:</strong><br>
+        <span class="text-dim">Investors: professional, Binance SVP anchor, clear next steps</span><br>
+        <span class="text-dim">Team: casual, profane, visionary, monologues</span><br>
+        <span class="text-dim">GM parents: warm, reassuring, mindfulness-aligned</span><br>
+        <span class="text-dim">AI tools: zero formality, open with problem</span>
+      </div>
+    </div>
+    <div>
+      <h3 class="mb-12">Content Pipeline (Scanner → Voice → Publish)</h3>
+      <div class="diagram" style="padding:16px;">
+        <div class="diagram-title">Content Creation Flow</div>
+        <div class="flow-col" style="gap:4px;">
+          <div class="node node-blue node-sm" style="min-width:260px;">Scanner: finds belief-aligned content (8/10 min)</div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-primary node-sm" style="min-width:260px;">Strategist: analyze for positioning opportunity</div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-pink node-sm" style="min-width:260px;">Voice Agent: draft in Jarred's exact voice</div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-orange node-sm" style="min-width:260px;">stop-slop: score 1-10 on 5 dimensions<br><span class="xs">(directness, rhythm, trust, authenticity, density)</span></div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-red node-sm" style="min-width:260px;">APPROVE / EDIT / SKIP (Jarred reviews)</div>
+          <div class="arrow-down">▼</div>
+          <div class="node node-green node-sm" style="min-width:260px;">n8n: publish to X/LinkedIn/blog</div>
         </div>
       </div>
-      <ul class="check-list" style="margin-top: 16px; font-size: 12px;">
-        <li>CCL licensing status tracking</li>
-        <li>Insurance renewal monitoring</li>
-        <li>Tax deadline alerts</li>
-        <li>Entity standing verification</li>
-        <li>Staff certification tracking</li>
-      </ul>
-      <p class="small" style="margin-top: 12px;">4 crons: daily check (7 AM), weekly summary (Mon 8:30 AM), monthly standing (1st), quarterly report</p>
+
+      <h3 class="mt-12 mb-8">stop-slop Quality Gate</h3>
+      <p class="sm text-dim">All outbound prose scored on 5 dimensions. Below 35/50 = mandatory rewrite. Catches: AI tells, generic phrasing, corporate tone, predictable structure, lack of Jarred's specific voice markers.</p>
+
+      <h3 class="mt-12 mb-8">Content Channels</h3>
+      <p class="sm text-dim">
+        <strong class="text-white">EXTINCTION Book</strong> — 11 chapters, 4 parts (offline writing)<br>
+        <strong class="text-white">Black Cap Podcast</strong> — repositioning in progress<br>
+        <strong class="text-white">Social / X</strong> — belief-aligned threads + viral engagement<br>
+        <strong class="text-white">LinkedIn</strong> — professional thought leadership
+      </p>
     </div>
   </div>
 </div>
 
-<!-- SLIDE 12: Winn AI Labs -->
+<!-- ===================== SLIDE 14: DAILY OPS ===================== -->
 <div class="slide">
-  <h2>🚀 Winn AI Labs — Revenue Engine</h2>
-  <p class="subtitle">32 AI service products for Sacramento/Placer County SMBs — target: $10-20K/month</p>
-
-  <div class="diagram">
-    <div class="diagram-title">Nightly Autonomous Product Builder (1 AM)</div>
-    <div style="display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap;">
-      <div class="node node-secondary node-small">Pick Next<br>Product</div>
-      <div class="arrow">→</div>
-      <div class="node node-blue node-small">Build Brand<br><span style="font-size:10px">Name, logo, copy</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-primary node-small">Build Website<br><span style="font-size:10px">GitHub Pages</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-orange node-small">Outreach<br><span style="font-size:10px">Templates</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-pink node-small">Ads + Marketing<br><span style="font-size:10px">Copy + targeting</span></div>
-      <div class="arrow">→</div>
-      <div class="node node-green node-small">Deploy ✓<br><span style="font-size:10px">Live site</span></div>
-    </div>
-  </div>
-
-  <div class="grid-3" style="margin-top: 20px;">
-    <div class="card">
-      <div class="card-stat" style="font-size: 28px;">32</div>
-      <div class="card-label">Products Designed</div>
-      <p class="small" style="margin-top: 8px;">5 waves by build priority. Each has anxiety statement, value prop, pricing, TAM estimate.</p>
-    </div>
-    <div class="card">
-      <div class="card-stat" style="font-size: 28px;">2</div>
-      <div class="card-label">Products Built</div>
-      <p class="small" style="margin-top: 8px;">NeverMiss AI (live), WinnAILabs Gateway (AI readiness quiz). Nightly builder adding more.</p>
-    </div>
-    <div class="card">
-      <div class="card-stat" style="font-size: 28px;">$10-20K</div>
-      <div class="card-label">Monthly Target</div>
-      <p class="small" style="margin-top: 8px;">Warm leads → Jarred closes. The system generates leads, builds trust assets, Jarred does the human part.</p>
-    </div>
-  </div>
-
-  <div class="highlight-box" style="margin-top: 16px;">
-    <h3>The Play</h3>
-    <p class="small">"All you have to do is get me the warm leads, and I will be able to build trust with any business owner." Each product website = trust signal + lead capture. Each outreach template = personalized to prospect's pain. The agent stack IS the fulfillment engine.</p>
-  </div>
-</div>
-
-<!-- SLIDE 13: Daily Operations -->
-<div class="slide">
-  <h2>⏰ Daily Operations Schedule</h2>
+  <h2>⏰ Daily Operations (37 Cron Jobs)</h2>
   <div class="scroll-content">
     <div class="diagram">
-      <div class="diagram-title">Typical Day — Automated Operations</div>
-      <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0; font-size: 13px;">
-
-        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">6:00 AM</div>
-        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-          <span class="tag tag-green">Transaction Sync</span>
-          <span class="tag tag-blue">Contact Decay Review</span>
-          <span class="tag tag-purple">Evolution Pipeline #1</span>
-        </div>
-
-        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">6:30 AM</div>
-        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-          <span class="tag tag-orange">Renewal Alerts</span>
-          <span class="tag tag-blue">Scanner Morning Intel</span>
-          <span class="tag tag-red">Deadline Watcher</span>
-        </div>
-
-        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">7:00 AM</div>
-        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-          <span class="tag tag-green">Daily Digest</span>
-          <span class="tag tag-blue">Compliance Check</span>
-          <span class="tag tag-purple">Skill Health Check</span>
-          <span class="tag tag-orange">Email Triage Start</span>
-        </div>
-
-        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">8:00 AM</div>
-        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-          <span class="tag tag-green">GM Parent Auto-Drafter Start</span>
-          <span class="tag tag-orange">Invoice Monitor</span>
-        </div>
-
-        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">9-11 AM</div>
-        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-          <span class="tag tag-blue">Early Viral Detector #1</span>
-          <span class="tag tag-orange">Pending Item Reminders</span>
-          <span class="tag tag-green">Email Triage (30min cycles)</span>
-        </div>
-
-        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">12:00 PM</div>
-        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-          <span class="tag tag-green">Midday Pipeline Check</span>
-          <span class="tag tag-blue">Midday Thinker Scan</span>
-          <span class="tag tag-purple">Evolution Pipeline #2</span>
-        </div>
-
-        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">3-6 PM</div>
-        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-          <span class="tag tag-blue">Early Viral #3 & #4</span>
-          <span class="tag tag-orange">Pending Reminders</span>
-          <span class="tag tag-green">Executive 4 PM Update</span>
-        </div>
-
-        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">8:00 PM</div>
-        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-          <span class="tag tag-green">EOD Reconciliation</span>
-          <span class="tag tag-blue">Task Reconciliation</span>
-        </div>
-
-        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">8:30 PM</div>
-        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-          <span class="tag tag-pink">Evening Viral Scan + Why-Viral</span>
-        </div>
-
-        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">9:00 PM</div>
-        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-          <span class="tag tag-purple">Evolution Pipeline #3</span>
-          <span class="tag tag-green">GM FAQ Learner</span>
-        </div>
-
-        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">10-11 PM</div>
-        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-          <span class="tag tag-purple">Utilization Scan</span>
-          <span class="tag tag-purple">Nightly Self-Improvement</span>
-        </div>
-
-        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">1:00 AM</div>
-        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
-          <span class="tag tag-orange">Nightly Product Builder</span>
-        </div>
-
+      <div class="diagram-title">Typical Automated Day</div>
+      <div style="display:grid; grid-template-columns:70px 1fr; gap:0; font-size:12px;">
+        <div style="color:var(--text-dim); padding:6px 0; font-weight:600;">6:00 AM</div>
+        <div style="padding:6px 0;"><span class="tag tag-green">Transaction Sync</span><span class="tag tag-blue">Contact Decay Review</span><span class="tag tag-purple">Evolution Pipeline #1</span></div>
+        <div style="color:var(--text-dim); padding:6px 0; font-weight:600;">6:30 AM</div>
+        <div style="padding:6px 0;"><span class="tag tag-orange">Renewal Alerts</span><span class="tag tag-blue">Scanner Morning Intel</span><span class="tag tag-red">Deadline Watcher</span></div>
+        <div style="color:var(--text-dim); padding:6px 0; font-weight:600;">7:00 AM</div>
+        <div style="padding:6px 0;"><span class="tag tag-green">Daily Digest</span><span class="tag tag-blue">Compliance Check</span><span class="tag tag-purple">Skill Health Check</span><span class="tag tag-orange">Email Triage Start</span><span class="tag tag-cyan">Task Reconciliation</span></div>
+        <div style="color:var(--text-dim); padding:6px 0; font-weight:600;">8:00 AM</div>
+        <div style="padding:6px 0;"><span class="tag tag-green">GM Parent Auto-Drafter</span><span class="tag tag-orange">Invoice Monitor</span></div>
+        <div style="color:var(--text-dim); padding:6px 0; font-weight:600;">9-11 AM</div>
+        <div style="padding:6px 0;"><span class="tag tag-blue">Early Viral Detector</span><span class="tag tag-orange">Pending Item Reminders</span><span class="tag tag-green">Email Triage (30min cycles)</span></div>
+        <div style="color:var(--text-dim); padding:6px 0; font-weight:600;">12:00 PM</div>
+        <div style="padding:6px 0;"><span class="tag tag-green">Midday Pipeline Check</span><span class="tag tag-blue">Midday Thinker Scan</span><span class="tag tag-purple">Evolution Pipeline #2</span><span class="tag tag-cyan">Task Reconciliation</span></div>
+        <div style="color:var(--text-dim); padding:6px 0; font-weight:600;">3-6 PM</div>
+        <div style="padding:6px 0;"><span class="tag tag-blue">Early Viral #3 & #4</span><span class="tag tag-orange">Pending Reminders</span><span class="tag tag-green">Executive 4 PM Update</span></div>
+        <div style="color:var(--text-dim); padding:6px 0; font-weight:600;">8:00 PM</div>
+        <div style="padding:6px 0;"><span class="tag tag-green">EOD Reconciliation</span><span class="tag tag-cyan">Task Reconciliation</span></div>
+        <div style="color:var(--text-dim); padding:6px 0; font-weight:600;">8:30 PM</div>
+        <div style="padding:6px 0;"><span class="tag tag-pink">Evening Viral Scan + Why-Viral Analysis</span></div>
+        <div style="color:var(--text-dim); padding:6px 0; font-weight:600;">9:00 PM</div>
+        <div style="padding:6px 0;"><span class="tag tag-purple">Evolution Pipeline #3</span><span class="tag tag-green">GM FAQ Learner</span><span class="tag tag-blue">Weekly AI Brief (Sun)</span></div>
+        <div style="color:var(--text-dim); padding:6px 0; font-weight:600;">10-11 PM</div>
+        <div style="padding:6px 0;"><span class="tag tag-purple">Utilization Scan</span><span class="tag tag-purple">Nightly Self-Improvement</span></div>
+        <div style="color:var(--text-dim); padding:6px 0; font-weight:600;">1:00 AM</div>
+        <div style="padding:6px 0;"><span class="tag tag-orange">Nightly Product Builder</span></div>
       </div>
+    </div>
+    <div class="grid-4" style="margin-top:12px;">
+      <div class="card" style="padding:12px; text-align:center;"><div class="card-stat" style="font-size:20px;">37</div><div class="card-label">Enabled Jobs</div></div>
+      <div class="card" style="padding:12px; text-align:center;"><div class="card-stat" style="font-size:20px;">13</div><div class="card-label">Disabled</div></div>
+      <div class="card" style="padding:12px; text-align:center;"><div class="card-stat" style="font-size:20px;">6</div><div class="card-label">Lobster Pipelines</div></div>
+      <div class="card" style="padding:12px; text-align:center;"><div class="card-stat" style="font-size:20px;">4</div><div class="card-label">n8n Workflows</div></div>
     </div>
   </div>
 </div>
 
-<!-- SLIDE 14: Infrastructure -->
+<!-- ===================== SLIDE 15: INFRASTRUCTURE ===================== -->
 <div class="slide">
-  <h2>🖥️ Infrastructure Map</h2>
+  <h2>🖥️ Infrastructure & Data Layer</h2>
   <div class="two-col">
     <div>
-      <div class="diagram" style="padding: 20px;">
+      <div class="diagram" style="padding:16px;">
         <div class="diagram-title">Physical Infrastructure</div>
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          <div class="node node-primary" style="text-align: left; padding: 16px;">
+        <div class="flow-col" style="gap:8px;">
+          <div class="node node-primary" style="text-align:left; padding:14px; min-width:300px;">
             <strong>Mac Mini (Local)</strong><br>
-            <span style="font-size: 11px; font-weight: 400;">
-              OpenClaw Gateway (port 18789)<br>
-              13 AI Agents<br>
-              Chroma Vector DB<br>
-              SQLite databases<br>
-              Gmail Push Handler (port 8788)
+            <span class="xs" style="font-weight:400;">
+              OpenClaw Gateway (port 18789) · 13 AI Agents<br>
+              Chroma Vector DB (4,246 chunks) · SQLite DBs<br>
+              Gmail Push Handler (port 8788) · Obsidian Vault
             </span>
           </div>
-
-          <div style="text-align: center; color: var(--text-dim); font-size: 12px;">
-            ↕ Tailscale VPN ↕
-          </div>
-
-          <div class="node node-orange" style="text-align: left; padding: 16px;">
+          <div style="text-align:center; color:var(--text-dim); font-size:11px;">↕ Tailscale VPN ↕</div>
+          <div class="node node-orange" style="text-align:left; padding:14px; min-width:300px;">
             <strong>Hetzner VPS (CX22)</strong><br>
-            <span style="font-size: 11px; font-weight: 400;">
-              n8n Community Edition (Docker)<br>
-              PostgreSQL<br>
-              4 active workflows<br>
-              IP: 80.71.235.165
+            <span class="xs" style="font-weight:400;">
+              n8n Community Edition (Docker + PostgreSQL)<br>
+              4 active workflows · IP: 80.71.235.165
             </span>
           </div>
         </div>
+      </div>
+
+      <h3 class="mt-12 mb-8">Data Stores</h3>
+      <div style="font-size:12px; line-height:1.8; color:var(--text-dim);">
+        <strong class="text-cyan">Chroma Vector DB</strong> — 4,246 chunks, 265 files. Semantic search.<br>
+        <strong class="text-pink">Viral Intel DB</strong> — SQLite. Posts, patterns, authors, velocity.<br>
+        <strong class="text-orange">Email Thread DB</strong> — SQLite + Gemini embeddings. 38 threads, 83 events.<br>
+        <strong class="text-green">CRM Markdown</strong> — contacts, pipeline, follow-ups, interactions.<br>
+        <strong class="text-accent">Obsidian Vault</strong> — 297 files, 262+ wiki links, 3 dashboards.
       </div>
     </div>
     <div>
-      <h3 style="margin-bottom: 16px;">Connected Services</h3>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <div class="card" style="padding: 12px;">
-          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Gmail (3 accounts)</p>
-          <p class="small" style="margin: 0;">Push + Polling + gog</p>
-        </div>
-        <div class="card" style="padding: 12px;">
-          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Notion</p>
-          <p class="small" style="margin: 0;">8 databases</p>
-        </div>
-        <div class="card" style="padding: 12px;">
-          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Slack</p>
-          <p class="small" style="margin: 0;">13 agent channels</p>
-        </div>
-        <div class="card" style="padding: 12px;">
-          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Signal</p>
-          <p class="small" style="margin: 0;">Direct messaging</p>
-        </div>
-        <div class="card" style="padding: 12px;">
-          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">GitHub Pages</p>
-          <p class="small" style="margin: 0;">Product websites</p>
-        </div>
-        <div class="card" style="padding: 12px;">
-          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Anthropic (OAuth)</p>
-          <p class="small" style="margin: 0;">Claude Opus + Sonnet</p>
-        </div>
-        <div class="card" style="padding: 12px;">
-          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Google Gemini</p>
-          <p class="small" style="margin: 0;">Embeddings + search</p>
-        </div>
-        <div class="card" style="padding: 12px;">
-          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Perplexity</p>
-          <p class="small" style="margin: 0;">Web search API</p>
-        </div>
+      <h3 class="mb-12">Connected Services</h3>
+      <div class="grid-2" style="gap:8px;">
+        <div class="card" style="padding:10px;"><p class="xs fw-600 text-white" style="margin:0;">Gmail (3 accounts)</p><p class="xs text-dim" style="margin:0;">Push + Polling + gog + himalaya</p></div>
+        <div class="card" style="padding:10px;"><p class="xs fw-600 text-white" style="margin:0;">Notion (8 DBs)</p><p class="xs text-dim" style="margin:0;">Tasks, Enrollment, Ideas Lab, CRM, etc.</p></div>
+        <div class="card" style="padding:10px;"><p class="xs fw-600 text-white" style="margin:0;">Slack (13 channels)</p><p class="xs text-dim" style="margin:0;">Agent channels + interactive triage</p></div>
+        <div class="card" style="padding:10px;"><p class="xs fw-600 text-white" style="margin:0;">Signal</p><p class="xs text-dim" style="margin:0;">Direct messaging + groups</p></div>
+        <div class="card" style="padding:10px;"><p class="xs fw-600 text-white" style="margin:0;">GitHub Pages</p><p class="xs text-dim" style="margin:0;">Product websites + cluster map</p></div>
+        <div class="card" style="padding:10px;"><p class="xs fw-600 text-white" style="margin:0;">Anthropic (OAuth)</p><p class="xs text-dim" style="margin:0;">Claude Opus + Sonnet 4.6</p></div>
+        <div class="card" style="padding:10px;"><p class="xs fw-600 text-white" style="margin:0;">Google Gemini</p><p class="xs text-dim" style="margin:0;">Embeddings + search</p></div>
+        <div class="card" style="padding:10px;"><p class="xs fw-600 text-white" style="margin:0;">Perplexity</p><p class="xs text-dim" style="margin:0;">Web search API</p></div>
+        <div class="card" style="padding:10px;"><p class="xs fw-600 text-white" style="margin:0;">Teller.io</p><p class="xs text-dim" style="margin:0;">Banking + transaction sync</p></div>
+        <div class="card" style="padding:10px;"><p class="xs fw-600 text-white" style="margin:0;">Brightwheel</p><p class="xs text-dim" style="margin:0;">GM enrollment + admissions</p></div>
+        <div class="card" style="padding:10px;"><p class="xs fw-600 text-white" style="margin:0;">Plaud / Otter.ai</p><p class="xs text-dim" style="margin:0;">Meeting transcripts → n8n</p></div>
+        <div class="card" style="padding:10px;"><p class="xs fw-600 text-white" style="margin:0;">Actual Budget</p><p class="xs text-dim" style="margin:0;">Financial tracking</p></div>
+      </div>
+
+      <h3 class="mt-12 mb-8">Notion Databases</h3>
+      <div style="font-size:11px; color:var(--text-dim); line-height:1.6;">
+        Task Board · GM Enrollment Pipeline · Ideas Lab · Thinkers DB · Network CRM · Product Concepts · System Changes · Version History
+      </div>
+
+      <h3 class="mt-12 mb-8">Custom Scripts (19)</h3>
+      <div style="font-size:11px; color:var(--text-dim); line-height:1.6;">
+        email-scorer.py · email-triage-send.py · email-triage-handle-click.py · viral-db.py · virality-scorer.py · chroma-indexer.py · chroma-search.py · drift-linter.py · system-integrity-check.py · teller-sync.py · finance-query.py · interactive-card.py · interactive-card-handler.py · notion-cache.py · crm-cache.py · email-db.py · utilization-enforcer.py · generate-analysis-pdf.py
       </div>
     </div>
   </div>
 </div>
 
-<!-- SLIDE 15: Use Cases -->
+<!-- ===================== SLIDE 16: USE CASES ===================== -->
 <div class="slide">
-  <h2>📋 Key Use Cases</h2>
+  <h2>📋 Complete Use Case Map</h2>
   <div class="scroll-content">
     <div class="grid-2">
-      <div class="use-case">
-        <div class="use-case-title">📧 Inbox Zero</div>
-        <div class="use-case-desc">Every email classified, triaged, and actioned. Noise auto-archived. Important items surfaced with Slack interactive buttons. GM parent emails get auto-drafted responses.</div>
-        <div class="use-case-flow">gmail push → 3-layer scorer → P0-P3 → slack buttons → draft/archive</div>
-      </div>
-
-      <div class="use-case">
-        <div class="use-case-title">🤝 Meeting Prep</div>
-        <div class="use-case-desc">24 hours before any meeting: auto-generate 7-section prep doc. CRM snapshot, recent activity, conversation starters, red flags, desired outcome.</div>
-        <div class="use-case-flow">calendar → lobster pipeline → CRM + web research → 7-section brief → deliver 1hr before</div>
-      </div>
-
-      <div class="use-case">
-        <div class="use-case-title">🌱 Parent Enrollment</div>
-        <div class="use-case-desc">Inquiry detected → auto-draft in Jarred's voice → pipeline tracked in Notion → Brightwheel packets auto-linked → FAQ continuously learning.</div>
-        <div class="use-case-flow">parent email → GM agent → auto-draft → notion pipeline → brightwheel → enrolled</div>
-      </div>
-
-      <div class="use-case">
-        <div class="use-case-title">🔍 Viral Intelligence</div>
-        <div class="use-case-desc">4x daily scanning for early viral posts. When detected: decompose into 12 factors, score against model, alert if relevant to Jarred's domains.</div>
-        <div class="use-case-flow">scanner cron → perplexity → velocity check → why-viral → alert if tier 1</div>
-      </div>
-
-      <div class="use-case">
-        <div class="use-case-title">💰 Financial Oversight</div>
-        <div class="use-case-desc">Daily transaction sync, anomaly detection, renewal tracking. Weekly spend summaries. Monthly consolidated reports across all entities.</div>
-        <div class="use-case-flow">teller.io → actual budget → anomaly detection → renewal alerts → monthly report</div>
-      </div>
-
-      <div class="use-case">
-        <div class="use-case-title">⚖️ Regulatory Compliance</div>
-        <div class="use-case-desc">Track licensing, insurance, tax deadlines across 3 entities (BVI, CA, preschool). Daily checks, weekly summaries, quarterly reports.</div>
-        <div class="use-case-flow">compliance DB → daily check → deadline alerts → standing verification → quarterly report</div>
-      </div>
-
-      <div class="use-case">
-        <div class="use-case-title">🚀 Product Launch Pipeline</div>
-        <div class="use-case-desc">32 AI products for local SMBs. Nightly builder: picks product → builds brand → creates website → generates outreach → deploys to GitHub Pages.</div>
-        <div class="use-case-flow">product queue → brand → website → outreach → ads → deploy → warm leads</div>
-      </div>
-
-      <div class="use-case">
-        <div class="use-case-title">👥 Relationship Decay</div>
-        <div class="use-case-desc">Every contact has a strength score that decays weekly. Below threshold → auto-generate personalized reach-out with 2-3 angles from CRM context.</div>
-        <div class="use-case-flow">daily decay calc → identify stale contacts → generate angles → stage draft → jarred approves</div>
-      </div>
+      <div class="use-case"><div class="use-case-title">📧 Inbox Zero</div><div class="use-case-desc">3-layer scorer classifies every email. Noise auto-archived. Important items get Slack interactive buttons. GM parent emails auto-drafted.</div><div class="use-case-flow">gmail push → 3-layer scorer → P0-P3 → slack buttons → draft/archive</div></div>
+      <div class="use-case"><div class="use-case-title">🤝 Meeting Prep</div><div class="use-case-desc">24h before: auto-generate 7-section brief from CRM + web research. Deliver 1h before (night before for morning meetings).</div><div class="use-case-flow">calendar → lobster pipeline → CRM + research → 7-section brief</div></div>
+      <div class="use-case"><div class="use-case-title">🌱 Parent Enrollment</div><div class="use-case-desc">Inquiry → auto-draft → pipeline tracked → Brightwheel packets → FAQ continuously learning from Jarred's actual replies.</div><div class="use-case-flow">parent email → GM agent → auto-draft → notion → brightwheel → enrolled</div></div>
+      <div class="use-case"><div class="use-case-title">💡 Belief-Driven Content</div><div class="use-case-desc">Scanner finds articles aligned with 38 beliefs. Profiles thinkers. Generates "Their stance / Your stance / Alignment" reports. 8/10 minimum threshold.</div><div class="use-case-flow">scanner → belief filter → thinker profile → alignment report → content opportunity</div></div>
+      <div class="use-case"><div class="use-case-title">🔍 Viral Intelligence</div><div class="use-case-desc">4x daily scan for early viral posts. 12-factor decomposition. Self-improving virality model. Based on Twitter's open-source algorithm weights.</div><div class="use-case-flow">scanner → perplexity → velocity check → why-viral → alert if tier 1</div></div>
+      <div class="use-case"><div class="use-case-title">👥 Relationship Decay</div><div class="use-case-desc">Every contact decays weekly. Below threshold → auto-generate personalized reach-out with 2-3 angles from CRM context + belief alignment.</div><div class="use-case-flow">daily decay calc → stale contacts → generate angles → stage draft</div></div>
+      <div class="use-case"><div class="use-case-title">💰 Financial Oversight</div><div class="use-case-desc">Daily transaction sync, anomaly detection, renewal tracking across all entities. Weekly spend summaries. Monthly consolidated reports.</div><div class="use-case-flow">teller.io → actual budget → anomaly detection → alerts → reports</div></div>
+      <div class="use-case"><div class="use-case-title">⚖️ Regulatory Compliance</div><div class="use-case-desc">Track all deadlines across 4 entities. CCL, insurance, tax, FBAR, FATCA, COPPA. Daily checks, weekly summaries, quarterly reports.</div><div class="use-case-flow">compliance DB → daily check → deadline alerts → standing verification</div></div>
+      <div class="use-case"><div class="use-case-title">🚀 Product Launch Pipeline</div><div class="use-case-desc">47 AI products for local SMBs. Nightly builder: research → brand → website → outreach → ads → prospect scoring → deploy.</div><div class="use-case-flow">build queue → research → brand → website → outreach → deploy</div></div>
+      <div class="use-case"><div class="use-case-title">🎙️ Plaud/Otter Transcript Processing</div><div class="use-case-desc">Meeting recordings → Notion Meeting Notes + Action Items pages → CRM updates → commitments to follow-ups.md → Signal digest.</div><div class="use-case-flow">plaud webhook → n8n → transcribe → extract → notion + CRM + signal</div></div>
+      <div class="use-case"><div class="use-case-title">🧬 Self-Evolution</div><div class="use-case-desc">3x daily: scan Jarred's world + stack gaps → research solutions → backup → implement → validate → log. Karpathy Loop for skill improvement.</div><div class="use-case-flow">context load → gap scan → research → backup → implement → validate</div></div>
+      <div class="use-case"><div class="use-case-title">🤝 Client Onboarding</div><div class="use-case-desc">Lobster pipeline: CRM lookup → web research → enrich profile → generate onboarding checklist → approval gate.</div><div class="use-case-flow">new client → CRM lookup → research → enrich → checklist → approve</div></div>
     </div>
   </div>
 </div>
 
-<!-- SLIDE 16: Timeline -->
+<!-- ===================== SLIDE 17: TIMELINE ===================== -->
 <div class="slide">
-  <h2>📅 Build Timeline</h2>
+  <h2>📅 Build Timeline (36 Days)</h2>
   <div class="scroll-content">
     <div class="two-col">
       <div class="timeline">
-        <div class="timeline-item">
-          <div class="timeline-date">Feb 11 — Day 1</div>
-          <div class="timeline-title">v1.0 — Foundation</div>
-          <div class="timeline-desc">OpenClaw deployed, Signal configured, ClickUp integrated, team bindings set up</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">Feb 11-13</div>
-          <div class="timeline-title">Virality Intelligence</div>
-          <div class="timeline-desc">X monitoring skill, breakout scoring formula, 3-tier alert system</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">Mar 5</div>
-          <div class="timeline-title">VPS & n8n</div>
-          <div class="timeline-desc">Hetzner provisioned, n8n deployed with Docker + Postgres</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">Mar 9 — v2.0</div>
-          <div class="timeline-title">The Big Build</div>
-          <div class="timeline-desc">12-agent architecture, Notion integration, email system, 20+ crons, belief system</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">Mar 10</div>
-          <div class="timeline-title">Belief System</div>
-          <div class="timeline-desc">37 entries, 136 thinkers, cluster map, EXTINCTION book concept</div>
-        </div>
+        <div class="timeline-item"><div class="timeline-date">Feb 11 — v1.0</div><div class="timeline-title">Foundation</div><div class="timeline-desc">OpenClaw on Mac Mini. Signal. ClickUp. Team bindings. X virality skill scaffolded.</div></div>
+        <div class="timeline-item"><div class="timeline-date">Feb 11-13</div><div class="timeline-title">Virality Intelligence</div><div class="timeline-desc">Breakout scoring formula. 3-tier alerts. LunarCrush API brief for team.</div></div>
+        <div class="timeline-item"><div class="timeline-date">Mar 5</div><div class="timeline-title">VPS & n8n</div><div class="timeline-desc">Hetzner CX22 provisioned. n8n Docker + Postgres. SSH hardened.</div></div>
+        <div class="timeline-item"><div class="timeline-date">Mar 9 — v2.0</div><div class="timeline-title">The Big Build</div><div class="timeline-desc">12-agent architecture. Notion. Email system (3 accounts). 20+ crons. Belief system upload (38 entries). Voice profile captured.</div></div>
+        <div class="timeline-item"><div class="timeline-date">Mar 10</div><div class="timeline-title">Belief System Build-Out</div><div class="timeline-desc">Ideas Lab fully populated. 136 thinkers profiled. 5 ORIGINAL ideas identified. Interactive HTML cluster map. EXTINCTION book concept.</div></div>
+        <div class="timeline-item"><div class="timeline-date">Mar 11</div><div class="timeline-title">Belief Deep Dives</div><div class="timeline-desc">Voice note methodology. 6 beliefs upgraded via Whisper transcription. Entry #38 (Religious Hypocrisy Paradox) emerged. Playbook documented for client replication.</div></div>
       </div>
       <div class="timeline">
-        <div class="timeline-item">
-          <div class="timeline-date">Mar 13</div>
-          <div class="timeline-title">GM Enrollment</div>
-          <div class="timeline-desc">10-step playbook, Brightwheel integration, 3 families processed</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">Mar 14 — v2.3</div>
-          <div class="timeline-title">Autonomy & Self-Healing</div>
-          <div class="timeline-desc">GREEN/YELLOW/RED tiers, error pattern scanner, self-healing heartbeat</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">Mar 15-16</div>
-          <div class="timeline-title">Email Intelligence</div>
-          <div class="timeline-desc">Thread DB, 3-layer scorer, Gmail push, Network CRM, Slack triage buttons</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">Mar 17 — v2.5</div>
-          <div class="timeline-title">12-Hour Session</div>
-          <div class="timeline-desc">Self-evolution, Chroma DB, Obsidian, viral DB, Karpathy loop, Treasurer + Compliance agents</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">Mar 18</div>
-          <div class="timeline-title">Revenue Engine</div>
-          <div class="timeline-desc">Winn AI Labs, 32 products, NeverMiss AI deployed, nightly builder active</div>
-        </div>
+        <div class="timeline-item"><div class="timeline-date">Mar 13</div><div class="timeline-title">GM Enrollment</div><div class="timeline-desc">10-step playbook. Brightwheel integration. 3 families processed. Credentials index created.</div></div>
+        <div class="timeline-item"><div class="timeline-date">Mar 14 — v2.3</div><div class="timeline-title">Autonomy & Self-Healing</div><div class="timeline-desc">GREEN/YELLOW/RED tiers. Error pattern scanner. Self-healing heartbeat. Weekly blocker audit.</div></div>
+        <div class="timeline-item"><div class="timeline-date">Mar 15-16</div><div class="timeline-title">Email Intelligence & CRM</div><div class="timeline-desc">Email Thread DB (SQLite + Gemini embeddings). 3-layer hybrid scorer. Gmail push. Network CRM DB in Notion. Slack interactive buttons.</div></div>
+        <div class="timeline-item"><div class="timeline-date">Mar 17 — v2.5</div><div class="timeline-title">12-Hour Mega Session</div><div class="timeline-desc">Self-evolution pipeline. Chroma DB. Obsidian vault. Viral DB + scorer. Karpathy loop. stop-slop. Treasurer + Compliance agents. relationship.md created.</div></div>
+        <div class="timeline-item"><div class="timeline-date">Mar 18</div><div class="timeline-title">Revenue Engine</div><div class="timeline-desc">Winn AI Labs: 47 products designed. NeverMiss AI deployed. Gateway built. Nightly autonomous builder active. Reddit lead-gen under discussion.</div></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- SLIDE 17: Cost & Metrics -->
+<!-- ===================== SLIDE 18: COST & METRICS ===================== -->
 <div class="slide">
-  <h2>📊 Cost & Performance</h2>
+  <h2>📊 Cost, Performance & Optimization</h2>
   <div class="two-col">
     <div>
-      <div class="card" style="margin-bottom: 16px;">
-        <div class="card-stat">~$160<span style="font-size: 16px; font-weight: 400;">/day</span></div>
-        <div class="card-label">Current Run Rate ($4,800/month)</div>
-      </div>
+      <div class="card mb-16"><div class="card-stat">~$160<span style="font-size:14px; font-weight:400;">/day</span></div><div class="card-label">Current Token Spend ($4,800/month)</div></div>
+      <h3 class="mb-8">Cost Breakdown</h3>
+      <div class="metric-bar"><span class="metric-label">Opus (conversations)</span><div class="metric-track"><div class="metric-fill" style="width:45%; background:var(--accent);"></div></div><span class="metric-value">~45%</span></div>
+      <div class="metric-bar"><span class="metric-label">Sonnet (37 cron jobs)</span><div class="metric-track"><div class="metric-fill" style="width:35%; background:var(--cyan);"></div></div><span class="metric-value">~35%</span></div>
+      <div class="metric-bar"><span class="metric-label">Infrastructure</span><div class="metric-track"><div class="metric-fill" style="width:12%; background:var(--orange);"></div></div><span class="metric-value">~12%</span></div>
+      <div class="metric-bar"><span class="metric-label">APIs (Gemini, etc)</span><div class="metric-track"><div class="metric-fill" style="width:8%; background:var(--green);"></div></div><span class="metric-value">~8%</span></div>
 
-      <h3 style="margin-bottom: 12px;">Cost Breakdown by Component</h3>
-      <div class="metric-bar">
-        <span class="metric-label">Opus (conversations)</span>
-        <div class="metric-track"><div class="metric-fill" style="width: 45%; background: var(--accent);"></div></div>
-        <span class="metric-value">~45%</span>
-      </div>
-      <div class="metric-bar">
-        <span class="metric-label">Sonnet (cron jobs)</span>
-        <div class="metric-track"><div class="metric-fill" style="width: 35%; background: var(--cyan);"></div></div>
-        <span class="metric-value">~35%</span>
-      </div>
-      <div class="metric-bar">
-        <span class="metric-label">Infrastructure</span>
-        <div class="metric-track"><div class="metric-fill" style="width: 12%; background: var(--orange);"></div></div>
-        <span class="metric-value">~12%</span>
-      </div>
-      <div class="metric-bar">
-        <span class="metric-label">APIs (Gemini, etc)</span>
-        <div class="metric-track"><div class="metric-fill" style="width: 8%; background: var(--green);"></div></div>
-        <span class="metric-value">~8%</span>
+      <h3 class="mt-16 mb-8">72-Hour Baseline Metrics</h3>
+      <div class="grid-2" style="gap:8px;">
+        <div class="card" style="padding:12px;"><div class="card-stat" style="font-size:20px;">682</div><div class="card-label">Main agent turns</div></div>
+        <div class="card" style="padding:12px;"><div class="card-stat" style="font-size:20px;">81%</div><div class="card-label">Cache hit rate</div></div>
+        <div class="card" style="padding:12px;"><div class="card-stat" style="font-size:20px;">90s</div><div class="card-label">Avg response</div></div>
+        <div class="card" style="padding:12px;"><div class="card-stat" style="font-size:20px;">$157</div><div class="card-label">72hr total cost</div></div>
       </div>
     </div>
     <div>
-      <h3 style="margin-bottom: 16px;">Performance Metrics (72hr baseline)</h3>
-      <div class="grid-2" style="gap: 12px;">
-        <div class="card" style="padding: 16px;">
-          <div class="card-stat" style="font-size: 24px;">682</div>
-          <div class="card-label">Main agent turns</div>
-        </div>
-        <div class="card" style="padding: 16px;">
-          <div class="card-stat" style="font-size: 24px;">81%</div>
-          <div class="card-label">Cache hit rate</div>
-        </div>
-        <div class="card" style="padding: 16px;">
-          <div class="card-stat" style="font-size: 24px;">90s</div>
-          <div class="card-label">Avg response time</div>
-        </div>
-        <div class="card" style="padding: 16px;">
-          <div class="card-stat" style="font-size: 24px;">37</div>
-          <div class="card-label">Active cron jobs</div>
-        </div>
+      <h3 class="mb-8">Optimization Levers</h3>
+      <ul class="check-list" style="font-size:12px;">
+        <li>Audit cron ROI: kill jobs that rarely produce actionable output</li>
+        <li>Consolidate overlapping crons (3 product builder crons → 1)</li>
+        <li>Aggressive context compression per call</li>
+        <li>Reduce heartbeat/polling frequency on low-value jobs</li>
+        <li>Silent cron rule: exit early when nothing actionable</li>
+        <li>Estimated reduction: 30-50% (~$2,400-3,600/month savings)</li>
+      </ul>
+
+      <h3 class="mt-16 mb-8">Financial Context</h3>
+      <div class="card" style="font-size:12px; line-height:1.6;">
+        <span class="text-dim">
+          Current AI spend: ~$200/mo Claude Max + ~$200/mo ChatGPT Pro + ~$100/mo per employee VPS + token spend<br><br>
+          <strong class="text-green">Revenue target: $10-20K/month</strong> from Winn AI Labs products<br>
+          <strong class="text-orange">Break-even:</strong> 2-3 clients at mid-tier pricing covers entire system cost<br>
+          <strong class="text-accent">Agent stack IS the fulfillment engine</strong> — same infra that runs ops also delivers client products
+        </span>
       </div>
 
-      <div class="highlight-box" style="margin-top: 16px;">
-        <h3>Optimization Levers</h3>
-        <ul class="check-list" style="font-size: 12px;">
-          <li>Consolidate low-value crons (estimated 30% reduction)</li>
-          <li>Aggressive context compression</li>
-          <li>Kill silent/empty cron runs earlier</li>
-          <li>Reduce heartbeat frequency</li>
-        </ul>
-      </div>
+      <h3 class="mt-16 mb-8">Jarred's Approval Budget</h3>
+      <p class="sm text-dim">30-45 min/day max. Morning digest 10 min, sporadic approve/skip 15-20 min, evening content review 10-15 min. If &gt;1 hour = system failing.</p>
     </div>
   </div>
 </div>
 
-<!-- SLIDE 18: What's Next -->
+<!-- ===================== SLIDE 19: WHAT'S NEXT ===================== -->
 <div class="slide">
   <h2>🔮 What's Next</h2>
-  <div class="grid-2">
+  <div class="two-col">
     <div>
-      <h3 style="margin-bottom: 16px;">Active Frontier</h3>
-      <div class="use-case" style="border-left-color: var(--green);">
-        <div class="use-case-title">Winn AI Labs Product Pipeline</div>
-        <div class="use-case-desc">32 products in queue. Nightly builder deploying one per night. NeverMiss AI live, Gateway built.</div>
-      </div>
-      <div class="use-case" style="border-left-color: var(--orange);">
-        <div class="use-case-title">Reddit Lead Generation</div>
-        <div class="use-case-desc">Monitor subreddits for pain points → helpful replies → passive profile conversion. Near-zero cost alternative to $160/day ad spend.</div>
-      </div>
-      <div class="use-case" style="border-left-color: var(--blue);">
-        <div class="use-case-title">Cost Optimization</div>
-        <div class="use-case-desc">Audit cron spend, consolidate jobs, kill low-value runs. Target: 40-50% cost reduction.</div>
-      </div>
+      <h3 class="mb-12">Active Frontier</h3>
+      <div class="use-case" style="border-left-color:var(--green);"><div class="use-case-title">🚀 Winn AI Labs Pipeline</div><div class="use-case-desc">47 products in queue. Nightly builder deploying one per night. NeverMiss AI live, Gateway built. Each product = trust signal + lead capture + outreach engine.</div></div>
+      <div class="use-case" style="border-left-color:var(--orange);"><div class="use-case-title">🔴 Reddit Lead Generation</div><div class="use-case-desc">Replace $160/day ad spend with earned distribution. Monitor subreddits for pain points → helpful replies → passive profile conversion. Near-zero cost. Agent stack drafts replies.</div></div>
+      <div class="use-case" style="border-left-color:var(--blue);"><div class="use-case-title">📉 Cost Optimization</div><div class="use-case-desc">Audit all 37 crons for ROI. Consolidate, kill low-value runs, reduce polling. Target: 30-50% reduction ($1,500-2,400/mo savings).</div></div>
+      <div class="use-case" style="border-left-color:var(--pink);"><div class="use-case-title">📖 EXTINCTION Book</div><div class="use-case-desc">11-chapter structure mapped from belief entries. Offline writing. Analyst agent for counter-argument stress-testing. Voice agent for draft support.</div></div>
+      <div class="use-case" style="border-left-color:var(--cyan);"><div class="use-case-title">🎯 Belief System as Client Service</div><div class="use-case-desc">Playbook documented for replication. Same 5-phase methodology (upload → score → catalog → voice note deep dives → thinker alignment) offered to Winn.ventures clients.</div></div>
     </div>
     <div>
-      <h3 style="margin-bottom: 16px;">Phase 2 & 3 Agents</h3>
-      <div class="card" style="margin-bottom: 12px; border-color: rgba(245, 158, 11, 0.4);">
-        <h3 style="color: var(--orange);">Phase 2 — Pending Gates</h3>
-        <ul class="check-list" style="font-size: 12px;">
-          <li>WMG (Winn.ventures deals, Mima)</li>
-          <li>Legal (contracts, advisory)</li>
+      <h3 class="mb-12">Phase 2 & 3 Agent Activation</h3>
+      <div class="card mb-12" style="border-color:rgba(245,158,11,0.4);">
+        <h3 style="color:var(--orange); font-size:14px;">Phase 2 — Pending Gates</h3>
+        <ul class="check-list" style="font-size:12px;">
+          <li>WMG: Winn.ventures deals, Upexi/WCI management, Mima</li>
+          <li>Legal: contracts, advisory agreements, token addendums, NDA</li>
         </ul>
+        <p class="xs text-dim mt-8">Gate: 7-day smoke test per agent. Rollback if KPI drops &gt;15%.</p>
       </div>
-      <div class="card" style="border-color: rgba(139, 92, 246, 0.4);">
-        <h3 style="color: var(--accent2);">Phase 3 — Intelligence Layer</h3>
-        <ul class="check-list" style="font-size: 12px;">
-          <li>Analyst (deep reasoning)</li>
-          <li>Voice (content in Jarred's voice)</li>
-          <li>Curator (KB governance)</li>
+      <div class="card mb-12" style="border-color:rgba(139,92,246,0.4);">
+        <h3 style="color:var(--accent2); font-size:14px;">Phase 3 — Intelligence Layer</h3>
+        <ul class="check-list" style="font-size:12px;">
+          <li>Analyst: deep reasoning, belief stress-testing</li>
+          <li>Voice: content in Jarred's exact voice profile</li>
+          <li>Curator: KB governance, contradiction detection</li>
+          <li>Sentinel: X/social monitoring, networking intel</li>
         </ul>
       </div>
 
-      <div class="highlight-box" style="margin-top: 16px;">
-        <h3>Revenue Goal</h3>
-        <p style="font-size: 14px; color: var(--text); line-height: 1.6;">
-          The system generates warm leads.<br>
-          Jarred closes deals.<br>
-          Target: $10-20K/month additional revenue.<br>
-          <strong>The agent stack IS the fulfillment engine.</strong>
+      <div class="highlight-box" style="border-color:rgba(34,197,94,0.4); background:rgba(34,197,94,0.05);">
+        <h4 style="color:var(--green);">The Endgame</h4>
+        <p class="sm text-dim" style="line-height:1.6;">
+          1. System generates warm leads via product websites + outreach<br>
+          2. CRM scores contacts by belief alignment + deal relevance<br>
+          3. Meeting prep auto-generates from CRM + research<br>
+          4. Jarred takes the meetings, builds trust, closes deals<br>
+          5. Content pipeline establishes thought leadership<br>
+          6. Belief system attracts aligned thinkers + investors<br>
+          7. Everything compounds: more data → better scoring → better leads<br><br>
+          <strong class="text-green">Target: $10-20K/month additional revenue</strong><br>
+          <strong class="text-green">Break-even: 2-3 clients at mid-tier pricing</strong>
         </p>
       </div>
     </div>
@@ -1704,44 +1222,13 @@
 </div>
 
 <script>
-  const slides = document.querySelectorAll('.slide');
-  const progress = document.getElementById('progress');
-  const counter = document.getElementById('counter');
-  let current = 0;
-
-  function show(index) {
-    slides.forEach((s, i) => {
-      s.classList.remove('active', 'exit');
-      if (i < index) s.classList.add('exit');
-    });
-    slides[index].classList.add('active');
-    progress.style.width = ((index + 1) / slides.length * 100) + '%';
-    counter.textContent = (index + 1) + ' / ' + slides.length;
-  }
-
-  function next() {
-    if (current < slides.length - 1) { current++; show(current); }
-  }
-
-  function prev() {
-    if (current > 0) { current--; show(current); }
-  }
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
-    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
-  });
-
-  // Touch support
-  let touchStartX = 0;
-  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
-  document.addEventListener('touchend', (e) => {
-    const diff = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); }
-  });
-
+  const slides=document.querySelectorAll('.slide'),progress=document.getElementById('progress'),counter=document.getElementById('counter');let current=0;
+  function show(i){slides.forEach((s,j)=>{s.classList.remove('active','exit');if(j<i)s.classList.add('exit')});slides[i].classList.add('active');progress.style.width=((i+1)/slides.length*100)+'%';counter.textContent=(i+1)+' / '+slides.length}
+  function next(){if(current<slides.length-1){current++;show(current)}}
+  function prev(){if(current>0){current--;show(current)}}
+  document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();next()}if(e.key==='ArrowLeft'){e.preventDefault();prev()}});
+  let tx=0;document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX});document.addEventListener('touchend',e=>{const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50){d>0?next():prev()}});
   show(0);
 </script>
-
 </body>
 </html>
