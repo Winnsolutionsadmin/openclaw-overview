@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenClaw System Overview — Winn AI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a2e;
+    --border: #2a2a3e;
+    --text: #e8e8f0;
+    --text-dim: #8888a0;
+    --accent: #6366f1;
+    --accent2: #8b5cf6;
+    --green: #22c55e;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --cyan: #06b6d4;
+    --pink: #ec4899;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .deck {
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 80px;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    overflow-y: auto;
+  }
+
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+  }
+
+  .slide.exit {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+
+  /* Navigation */
+  .nav {
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    display: flex;
+    gap: 12px;
+    z-index: 100;
+  }
+
+  .nav button {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav button:hover { background: var(--accent); border-color: var(--accent); }
+
+  .progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.4s ease;
+    z-index: 100;
+  }
+
+  .slide-counter {
+    position: fixed;
+    bottom: 38px;
+    left: 40px;
+    font-size: 13px;
+    color: var(--text-dim);
+    font-weight: 500;
+    z-index: 100;
+  }
+
+  /* Typography */
+  h1 {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  h2 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 32px;
+    color: var(--text);
+  }
+
+  h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--text-dim);
+    font-weight: 400;
+    margin-bottom: 40px;
+    line-height: 1.5;
+  }
+
+  p { line-height: 1.6; color: var(--text-dim); margin-bottom: 12px; }
+
+  /* Diagram containers */
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin: 20px 0;
+    position: relative;
+    overflow: visible;
+  }
+
+  .diagram-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+
+  /* Flow components */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+    padding: 10px 0;
+  }
+
+  .flow-vertical {
+    flex-direction: column;
+  }
+
+  .node {
+    padding: 14px 22px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 120px;
+    position: relative;
+    line-height: 1.3;
+  }
+
+  .node-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  }
+
+  .node-secondary {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .node-green {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: var(--green);
+  }
+
+  .node-orange {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: var(--orange);
+  }
+
+  .node-red {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: var(--red);
+  }
+
+  .node-blue {
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: var(--blue);
+  }
+
+  .node-cyan {
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.4);
+    color: var(--cyan);
+  }
+
+  .node-pink {
+    background: rgba(236, 72, 153, 0.15);
+    border: 1px solid rgba(236, 72, 153, 0.4);
+    color: var(--pink);
+  }
+
+  .node-small {
+    padding: 8px 14px;
+    font-size: 11px;
+    min-width: 90px;
+  }
+
+  .arrow {
+    color: var(--text-dim);
+    font-size: 20px;
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+
+  .arrow-down {
+    padding: 6px 0;
+    font-size: 20px;
+    color: var(--text-dim);
+  }
+
+  /* Grid layouts */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+
+  .grid-4 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .card h3 { margin-bottom: 8px; }
+
+  .card-stat {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .card-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+
+  /* Lists */
+  .check-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .check-list li {
+    padding: 8px 0;
+    font-size: 15px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.4;
+  }
+
+  .check-list li::before {
+    content: '✓';
+    color: var(--green);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Agent table */
+  .agent-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    gap: 16px;
+  }
+
+  .agent-row:nth-child(odd) { background: var(--surface); }
+
+  .agent-emoji { font-size: 20px; width: 30px; text-align: center; }
+  .agent-name { font-weight: 600; width: 100px; color: var(--text); }
+  .agent-model { width: 80px; color: var(--text-dim); font-size: 11px; }
+  .agent-desc { flex: 1; color: var(--text-dim); }
+  .agent-status { width: 70px; text-align: right; font-weight: 600; font-size: 11px; }
+  .status-active { color: var(--green); }
+  .status-phase2 { color: var(--orange); }
+  .status-phase3 { color: var(--text-dim); }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+    padding-left: 30px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+    padding-left: 20px;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+  }
+
+  .timeline-date {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .timeline-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .timeline-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  /* Metric bar */
+  .metric-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .metric-label {
+    width: 160px;
+    font-size: 13px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .metric-track {
+    flex: 1;
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .metric-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease;
+  }
+
+  .metric-value {
+    width: 50px;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* Use case box */
+  .use-case {
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+
+  .use-case-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .use-case-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .use-case-flow {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--cyan);
+    font-family: 'SF Mono', Monaco, monospace;
+  }
+
+  /* Hub and spoke layout */
+  .hub-spoke {
+    position: relative;
+    width: 500px;
+    height: 400px;
+    margin: 0 auto;
+  }
+
+  .hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+  }
+
+  .spoke {
+    position: absolute;
+    z-index: 2;
+  }
+
+  .spoke-line {
+    position: absolute;
+    background: var(--border);
+    z-index: 1;
+  }
+
+  /* Tag */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+
+  .tag-green { background: rgba(34, 197, 94, 0.15); color: var(--green); }
+  .tag-orange { background: rgba(245, 158, 11, 0.15); color: var(--orange); }
+  .tag-red { background: rgba(239, 68, 68, 0.15); color: var(--red); }
+  .tag-blue { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+  .tag-purple { background: rgba(139, 92, 246, 0.15); color: var(--accent2); }
+
+  /* Title slide special */
+  .title-slide {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .title-slide h1 {
+    font-size: 64px;
+    margin-bottom: 20px;
+  }
+
+  .logo-icon {
+    font-size: 72px;
+    margin-bottom: 24px;
+  }
+
+  .title-meta {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .title-meta-item {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  /* Section divider */
+  .section-divider {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .section-divider h2 {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  .section-number {
+    font-size: 120px;
+    font-weight: 900;
+    color: var(--surface2);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -70%);
+    z-index: 0;
+  }
+
+  .section-divider .subtitle {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-divider h2 {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Responsive scroll for dense slides */
+  .scroll-content {
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    padding-right: 10px;
+  }
+
+  .scroll-content::-webkit-scrollbar { width: 4px; }
+  .scroll-content::-webkit-scrollbar-track { background: transparent; }
+  .scroll-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .small { font-size: 12px; }
+
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+  }
+
+  kbd {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 12px;
+    font-family: 'SF Mono', Monaco, monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="slide-counter" id="counter"></div>
+
+<div class="deck" id="deck">
+
+<!-- SLIDE 1: Title -->
+<div class="slide title-slide active">
+  <div class="logo-icon">🐾</div>
+  <h1>OpenClaw System Overview</h1>
+  <p class="subtitle">Personal AI Chief of Staff — Built Feb 11 to Mar 18, 2026</p>
+  <div class="title-meta">
+    <span class="title-meta-item">Version 2.5</span>
+    <span class="title-meta-item">13 Agents</span>
+    <span class="title-meta-item">37 Cron Jobs</span>
+    <span class="title-meta-item">40+ Skills</span>
+  </div>
+  <p style="margin-top: 32px; font-size: 13px; color: var(--text-dim);">Jarred Winn · Winn.ventures · Growing Mindfully</p>
+</div>
+
+<!-- SLIDE 2: What Is This -->
+<div class="slide">
+  <h2>🧠 What Is This System?</h2>
+  <div class="two-col">
+    <div>
+      <p style="font-size: 16px; color: var(--text); line-height: 1.7; margin-bottom: 24px;">
+        An autonomous AI operations layer that manages email, CRM, research, compliance, finance, and content — running 24/7 on a Mac Mini with cloud infrastructure.
+      </p>
+      <div class="highlight-box">
+        <h3 style="margin-bottom: 12px;">Core Principle</h3>
+        <p style="font-size: 14px; color: var(--text);">
+          n8n = nervous system (plumbing)<br>
+          OpenClaw = brain (reasoning)<br><br>
+          n8n never makes judgment calls.<br>
+          OpenClaw never polls APIs.
+        </p>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-stat">36</div>
+        <div class="card-label">Days to build</div>
+      </div>
+      <div class="grid-2" style="gap: 12px;">
+        <div class="card">
+          <div class="card-stat" style="font-size: 28px;">13</div>
+          <div class="card-label">AI Agents</div>
+        </div>
+        <div class="card">
+          <div class="card-stat" style="font-size: 28px;">37</div>
+          <div class="card-label">Cron Jobs</div>
+        </div>
+        <div class="card">
+          <div class="card-stat" style="font-size: 28px;">40+</div>
+          <div class="card-label">Skills</div>
+        </div>
+        <div class="card">
+          <div class="card-stat" style="font-size: 28px;">6</div>
+          <div class="card-label">Notion DBs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3: Architecture Overview -->
+<div class="slide">
+  <h2>🏗️ System Architecture</h2>
+  <div class="diagram">
+    <div class="diagram-title">High-Level Data Flow</div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 0;">
+
+      <!-- Input layer -->
+      <div style="display: flex; gap: 16px; margin-bottom: 8px;">
+        <div class="node node-cyan node-small">Gmail Push</div>
+        <div class="node node-cyan node-small">Slack</div>
+        <div class="node node-cyan node-small">Signal</div>
+        <div class="node node-cyan node-small">Webhooks</div>
+        <div class="node node-cyan node-small">Cron Jobs</div>
+      </div>
+
+      <div class="arrow-down">▼</div>
+
+      <!-- n8n layer -->
+      <div class="node node-orange" style="min-width: 300px;">
+        ⚡ n8n — Nervous System<br>
+        <span style="font-size: 11px; font-weight: 400;">Filters, routes, triggers — no judgment calls</span>
+      </div>
+
+      <div class="arrow-down">▼</div>
+
+      <!-- Executive -->
+      <div class="node node-primary" style="min-width: 350px;">
+        🧠 Executive Agent — The Brain<br>
+        <span style="font-size: 11px; font-weight: 400;">Triages, routes, synthesizes, surfaces to Jarred</span>
+      </div>
+
+      <div class="arrow-down">▼</div>
+
+      <!-- Domain agents -->
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+        <div class="node node-green node-small">Scribe<br><span style="font-size:10px">Email</span></div>
+        <div class="node node-green node-small">GM<br><span style="font-size:10px">Childcare</span></div>
+        <div class="node node-blue node-small">Scanner<br><span style="font-size:10px">Research</span></div>
+        <div class="node node-blue node-small">Strategist<br><span style="font-size:10px">Thinking</span></div>
+        <div class="node node-pink node-small">Treasurer<br><span style="font-size:10px">Finance</span></div>
+        <div class="node node-pink node-small">Compliance<br><span style="font-size:10px">Legal/Reg</span></div>
+      </div>
+
+      <div class="arrow-down">▼</div>
+
+      <!-- Output layer -->
+      <div style="display: flex; gap: 16px;">
+        <div class="node node-secondary node-small">Notion</div>
+        <div class="node node-secondary node-small">CRM Files</div>
+        <div class="node node-secondary node-small">Gmail Drafts</div>
+        <div class="node node-secondary node-small">Slack</div>
+        <div class="node node-secondary node-small">Reports</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: Agent Roster -->
+<div class="slide">
+  <h2>🤖 Agent Roster</h2>
+  <div class="scroll-content">
+    <div class="agent-row" style="background: var(--surface2); font-weight: 600; font-size: 12px; color: var(--text-dim);">
+      <span class="agent-emoji"></span>
+      <span class="agent-name">AGENT</span>
+      <span class="agent-model">MODEL</span>
+      <span class="agent-desc">FUNCTION</span>
+      <span class="agent-status">STATUS</span>
+    </div>
+    <div class="agent-row">
+      <span class="agent-emoji">🧠</span>
+      <span class="agent-name">Executive</span>
+      <span class="agent-model">Sonnet</span>
+      <span class="agent-desc">Routing, email triage, CRM, daily digests, approval queue</span>
+      <span class="agent-status status-active">ACTIVE</span>
+    </div>
+    <div class="agent-row">
+      <span class="agent-emoji">💭</span>
+      <span class="agent-name">Strategist</span>
+      <span class="agent-model">Opus</span>
+      <span class="agent-desc">Thinking partner, belief system analysis, knowledge base</span>
+      <span class="agent-status status-active">ACTIVE</span>
+    </div>
+    <div class="agent-row">
+      <span class="agent-emoji">✍️</span>
+      <span class="agent-name">Scribe</span>
+      <span class="agent-model">Sonnet</span>
+      <span class="agent-desc">Email drafting in Jarred's voice, edit-learning</span>
+      <span class="agent-status status-active">ACTIVE</span>
+    </div>
+    <div class="agent-row">
+      <span class="agent-emoji">🌱</span>
+      <span class="agent-name">GM</span>
+      <span class="agent-model">Sonnet</span>
+      <span class="agent-desc">Growing Mindfully ops, enrollment pipeline, parent comms</span>
+      <span class="agent-status status-active">ACTIVE</span>
+    </div>
+    <div class="agent-row">
+      <span class="agent-emoji">🔍</span>
+      <span class="agent-name">Scanner</span>
+      <span class="agent-model">Sonnet</span>
+      <span class="agent-desc">Research monitoring, viral detection, thinker analysis</span>
+      <span class="agent-status status-active">ACTIVE</span>
+    </div>
+    <div class="agent-row">
+      <span class="agent-emoji">💰</span>
+      <span class="agent-name">Treasurer</span>
+      <span class="agent-model">Sonnet</span>
+      <span class="agent-desc">Financial monitoring, anomaly detection, renewals</span>
+      <span class="agent-status status-active">ACTIVE</span>
+    </div>
+    <div class="agent-row">
+      <span class="agent-emoji">⚖️</span>
+      <span class="agent-name">Compliance</span>
+      <span class="agent-model">Sonnet</span>
+      <span class="agent-desc">Regulatory deadlines, licensing, insurance, entity standing</span>
+      <span class="agent-status status-active">ACTIVE</span>
+    </div>
+    <div class="agent-row">
+      <span class="agent-emoji">🤝</span>
+      <span class="agent-name">WMG</span>
+      <span class="agent-model">Sonnet</span>
+      <span class="agent-desc">Winn.ventures deals, clients, Mima/Project X</span>
+      <span class="agent-status status-phase2">PHASE 2</span>
+    </div>
+    <div class="agent-row">
+      <span class="agent-emoji">📜</span>
+      <span class="agent-name">Legal</span>
+      <span class="agent-model">Sonnet</span>
+      <span class="agent-desc">Contracts, review, advisory</span>
+      <span class="agent-status status-phase2">PHASE 2</span>
+    </div>
+    <div class="agent-row">
+      <span class="agent-emoji">🔬</span>
+      <span class="agent-name">Analyst</span>
+      <span class="agent-model">Opus</span>
+      <span class="agent-desc">Deep reasoning, belief system evaluation</span>
+      <span class="agent-status status-phase3">PHASE 3</span>
+    </div>
+    <div class="agent-row">
+      <span class="agent-emoji">🎙️</span>
+      <span class="agent-name">Voice</span>
+      <span class="agent-model">Sonnet</span>
+      <span class="agent-desc">Content drafting in Jarred's voice</span>
+      <span class="agent-status status-phase3">PHASE 3</span>
+    </div>
+    <div class="agent-row">
+      <span class="agent-emoji">📚</span>
+      <span class="agent-name">Curator</span>
+      <span class="agent-model">Sonnet</span>
+      <span class="agent-desc">Knowledge base maintenance, consistency</span>
+      <span class="agent-status status-phase3">PHASE 3</span>
+    </div>
+    <div style="margin-top: 20px; display: flex; gap: 16px;">
+      <span class="tag tag-green">Active: 7 agents</span>
+      <span class="tag tag-orange">Phase 2: 2 agents</span>
+      <span class="tag tag-purple">Phase 3: 3 agents</span>
+    </div>
+    <p style="margin-top: 12px; font-size: 13px;">Model split: Opus for direct conversations + deep reasoning. Sonnet for all automated/cron work (cost control).</p>
+  </div>
+</div>
+
+<!-- SLIDE 5: Email Pipeline -->
+<div class="slide">
+  <h2>📧 Email Triage Pipeline</h2>
+  <p class="subtitle">Push-based email processing across 3 accounts with intelligent classification</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Email Flow: Inbound → Triage → Action</div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 0;">
+      <div style="display: flex; gap: 16px;">
+        <div class="node node-cyan node-small">GM Gmail<br><span style="font-size:10px">Pub/Sub Push</span></div>
+        <div class="node node-cyan node-small">Winn.solutions<br><span style="font-size:10px">Polling 10s</span></div>
+        <div class="node node-cyan node-small">Winn.ventures<br><span style="font-size:10px">gog</span></div>
+      </div>
+
+      <div class="arrow-down">▼</div>
+
+      <div class="node node-primary" style="min-width: 350px;">
+        3-Layer Hybrid Scorer<br>
+        <span style="font-size: 11px; font-weight: 400;">Rule Engine → LLM Classification → Behavioral Boost</span>
+      </div>
+
+      <div class="arrow-down">▼</div>
+
+      <div style="display: flex; gap: 16px;">
+        <div class="node node-red node-small">P0<br><span style="font-size:10px">Instant alert</span></div>
+        <div class="node node-orange node-small">P1<br><span style="font-size:10px">Same day</span></div>
+        <div class="node node-blue node-small">P2<br><span style="font-size:10px">This week</span></div>
+        <div class="node node-secondary node-small">P3<br><span style="font-size:10px">When possible</span></div>
+      </div>
+
+      <div class="arrow-down">▼</div>
+
+      <div style="display: flex; gap: 16px;">
+        <div class="node node-green node-small">Slack Triage<br><span style="font-size:10px">Interactive buttons</span></div>
+        <div class="node node-green node-small">Gmail Draft<br><span style="font-size:10px">In Jarred's voice</span></div>
+        <div class="node node-green node-small">Auto-Archive<br><span style="font-size:10px">Noise filtered</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top: 16px;">
+    <div class="card">
+      <h3>📋 60+ Sender Rules</h3>
+      <p class="small">Classified senders: VIP, noise, suppress, block. Auto-archive spam without notification.</p>
+    </div>
+    <div class="card">
+      <h3>🔘 Slack Buttons</h3>
+      <p class="small">Complete, Snooze (1h/4h/tomorrow), Block Sender — overflow menus on every triaged email.</p>
+    </div>
+    <div class="card">
+      <h3>📝 Auto-Drafts</h3>
+      <p class="small">GM parent emails get auto-drafted in Jarred's voice. Enrollment responses, tour scheduling, FAQ.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6: CRM & Contacts -->
+<div class="slide">
+  <h2>👥 CRM & Contact Intelligence</h2>
+  <div class="two-col">
+    <div>
+      <div class="diagram" style="padding: 24px;">
+        <div class="diagram-title">CRM Architecture</div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div class="flow">
+            <div class="node node-primary node-small">New Contact</div>
+            <div class="arrow">→</div>
+            <div class="node node-green node-small">CRM Entry<br><span style="font-size:10px">Markdown (auth)</span></div>
+          </div>
+          <div class="flow">
+            <div class="node node-green node-small">Markdown Files</div>
+            <div class="arrow">↔</div>
+            <div class="node node-blue node-small">Notion CRM DB</div>
+          </div>
+          <div class="flow">
+            <div class="node node-secondary node-small">Weekly Decay</div>
+            <div class="arrow">→</div>
+            <div class="node node-orange node-small">Reach-out Drafts</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="highlight-box">
+        <h3>Decay Formula</h3>
+        <p style="font-family: monospace; font-size: 13px; color: var(--cyan);">
+          strength = base × (0.97 ^ (days / 7))
+        </p>
+        <p class="small" style="margin-top: 8px;">Below 2.0 or 21+ days silence → auto-generate personalized reach-out with 2-3 angles</p>
+      </div>
+    </div>
+    <div>
+      <h3>Notion Network CRM Fields</h3>
+      <ul class="check-list" style="font-size: 13px;">
+        <li>Name, Title/Role, Organization</li>
+        <li>Relationship Tier & Strength (1.0 scale)</li>
+        <li>Lead State (new → sent → replied → closed)</li>
+        <li>Belief Alignment & Alignment Score</li>
+        <li>Their Thesis + Bridge Opportunity</li>
+        <li>Warm Intro Path</li>
+        <li>Social Handles, Last Contact, Next Action</li>
+        <li>Deal Relevance, Source</li>
+      </ul>
+
+      <div style="margin-top: 20px;">
+        <h3>First-Contact Rule</h3>
+        <p class="small">New person in any channel → immediately create CRM entry → flag Jarred for importance_factor scoring. No contacts fall through.</p>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <h3>Lead States</h3>
+        <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px;">
+          <span class="tag tag-blue">new</span>
+          <span style="color: var(--text-dim);">→</span>
+          <span class="tag tag-blue">researched</span>
+          <span style="color: var(--text-dim);">→</span>
+          <span class="tag tag-purple">enriched</span>
+          <span style="color: var(--text-dim);">→</span>
+          <span class="tag tag-orange">drafted</span>
+          <span style="color: var(--text-dim);">→</span>
+          <span class="tag tag-orange">approved</span>
+          <span style="color: var(--text-dim);">→</span>
+          <span class="tag tag-green">sent</span>
+          <span style="color: var(--text-dim);">→</span>
+          <span class="tag tag-green">replied</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: GM Enrollment -->
+<div class="slide">
+  <h2>🌱 Growing Mindfully — Enrollment Pipeline</h2>
+  <div class="diagram">
+    <div class="diagram-title">Enrollment Flow: Inquiry → Active Student</div>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap;">
+      <div class="node node-cyan node-small">Parent Inquiry<br><span style="font-size:10px">Email/Phone</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-blue node-small">Auto-Draft<br><span style="font-size:10px">Gmail draft</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-orange node-small">Tour Scheduled<br><span style="font-size:10px">Ashley M/W/F</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-orange node-small">Tour Complete</div>
+      <div class="arrow">→</div>
+      <div class="node node-primary node-small">Enrollment<br><span style="font-size:10px">Brightwheel</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-green node-small">Active ✓</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top: 20px;">
+    <div>
+      <h3>Automated Components</h3>
+      <ul class="check-list">
+        <li>Parent email detection → auto-draft in Jarred's voice</li>
+        <li>Notion pipeline tracking with color-coded action fields</li>
+        <li>Brightwheel packet links auto-included (3 age groups)</li>
+        <li>Start date logic: next Monday (or Monday after for Thu/Fri)</li>
+        <li>Deposit calculation: 2 weeks tuition + $45 enrollment fee</li>
+        <li>FAQ learner: reads Jarred's sent replies nightly, updates knowledge</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Action Required Tags</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="tag tag-red">Awaiting Jarred</span>
+          <span class="small">Needs Jarred's input</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="tag tag-orange">Awaiting Family</span>
+          <span class="small">Ball in parent's court</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="tag tag-blue">Awaiting Ashley</span>
+          <span class="small">Tour scheduling/follow-up</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="tag tag-green">None</span>
+          <span class="small">No action needed</span>
+        </div>
+      </div>
+      <h3>Notion DB</h3>
+      <p class="small">Fields: Child Name, Parent Name/Email/Phone, Stage, Source, Tour Date, Age Group, Priority, Notes, Action Required, Follow-up Due</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 8: Intelligence Layer -->
+<div class="slide">
+  <h2>🔍 Intelligence & Research Layer</h2>
+  <div class="two-col">
+    <div>
+      <div class="diagram" style="padding: 20px;">
+        <div class="diagram-title">Scanner Agent — 4 Daily Crons</div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: var(--orange); font-size: 12px; width: 70px; font-weight: 600;">6:30 AM</span>
+            <div class="node node-blue node-small" style="flex: 1;">Morning Intel Brief</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: var(--orange); font-size: 12px; width: 70px; font-weight: 600;">12:30 PM</span>
+            <div class="node node-blue node-small" style="flex: 1;">Midday Thinker Scan</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: var(--orange); font-size: 12px; width: 70px; font-weight: 600;">4x Daily</span>
+            <div class="node node-red node-small" style="flex: 1;">Early Viral Detector</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: var(--orange); font-size: 12px; width: 70px; font-weight: 600;">8:30 PM</span>
+            <div class="node node-pink node-small" style="flex: 1;">Evening Viral + Why-Viral</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="diagram" style="padding: 20px;">
+        <div class="diagram-title">Viral Scoring Engine</div>
+        <div style="font-family: monospace; font-size: 12px; color: var(--cyan); line-height: 1.8;">
+          reply_to_reply: 75× weight<br>
+          direct_reply: 20×<br>
+          profile_click: 12×<br>
+          retweet: 10×<br>
+          bookmark: 5×<br>
+          like: 1× (baseline)<br>
+          <span style="color: var(--text-dim);">+ log2 scaling + time decay + credibility</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h3>Data Stores</h3>
+      <div class="card" style="margin-bottom: 12px;">
+        <h3 style="color: var(--cyan);">Chroma Vector DB</h3>
+        <p class="small">4,246 chunks across 265 files. Semantic search for "find anything related to X."</p>
+      </div>
+      <div class="card" style="margin-bottom: 12px;">
+        <h3 style="color: var(--pink);">Viral Intel DB (SQLite)</h3>
+        <p class="small">Posts, patterns, authors, velocity tracking. CLI: viral-db.py</p>
+      </div>
+      <div class="card" style="margin-bottom: 12px;">
+        <h3 style="color: var(--orange);">Email Thread DB</h3>
+        <p class="small">38 threads, 83 events. Gemini vector embeddings for semantic email search.</p>
+      </div>
+      <div class="card">
+        <h3 style="color: var(--green);">Ideas Lab + Thinkers</h3>
+        <p class="small">37 belief entries, 136 thinkers profiled. Alignment scoring, bridge opportunities.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 9: Autonomy Framework -->
+<div class="slide">
+  <h2>🚦 Autonomy Framework</h2>
+  <p class="subtitle">Three-tier decision model — what the system can do without asking</p>
+
+  <div class="grid-3">
+    <div class="card" style="border-color: rgba(34, 197, 94, 0.4);">
+      <h3 style="color: var(--green);">🟢 GREEN — Act Silently</h3>
+      <ul class="check-list" style="font-size: 12px;">
+        <li>Archive promotional emails</li>
+        <li>Internal file operations</li>
+        <li>CRM field updates (touch dates, notes)</li>
+        <li>Install missing npm dependencies</li>
+        <li>Create daily memory files</li>
+        <li>Update error patterns</li>
+        <li>Archive old logs (>7 days)</li>
+      </ul>
+    </div>
+    <div class="card" style="border-color: rgba(245, 158, 11, 0.4);">
+      <h3 style="color: var(--orange);">🟡 YELLOW — Act + Log</h3>
+      <ul class="check-list" style="font-size: 12px;">
+        <li>Disable a broken plugin</li>
+        <li>Restart stalled channel</li>
+        <li>Install/update ClawHub skills</li>
+        <li>Auto-fix known error patterns</li>
+        <li>Update cron payload text</li>
+        <li>Create CRM entries for new contacts</li>
+        <li>Generate reach-out drafts (staged)</li>
+      </ul>
+    </div>
+    <div class="card" style="border-color: rgba(239, 68, 68, 0.4);">
+      <h3 style="color: var(--red);">🔴 RED — Requires Approval</h3>
+      <ul class="check-list" style="font-size: 12px;">
+        <li>Any outbound communication</li>
+        <li>Schedule or cancel meetings</li>
+        <li>Edit config or credentials</li>
+        <li>Disable/enable cron jobs</li>
+        <li>Delete anything</li>
+        <li>Spend money</li>
+        <li>Anything external-facing</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight-box" style="margin-top: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h3>Self-Healing Loop</h3>
+        <p class="small">Every heartbeat: scan logs → classify errors → auto-fix GREEN tier → log YELLOW tier → alert RED tier. System recovers from common failures without human intervention.</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <div class="node node-secondary node-small">Detect</div>
+        <div class="arrow">→</div>
+        <div class="node node-secondary node-small">Classify</div>
+        <div class="arrow">→</div>
+        <div class="node node-secondary node-small">Act/Log/Alert</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 10: Self-Evolution -->
+<div class="slide">
+  <h2>🧬 Self-Evolution Pipeline</h2>
+  <p class="subtitle">The system researches and implements its own improvements — with backup & rollback</p>
+
+  <div class="diagram">
+    <div class="diagram-title">7-Phase Evolution Cycle (runs 3× daily: 6 AM, 1 PM, 9 PM)</div>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap;">
+      <div class="node node-blue node-small">1. Research<br><span style="font-size:10px">What's new?</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-blue node-small">2. Assess<br><span style="font-size:10px">Does it apply?</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-orange node-small">3. Backup<br><span style="font-size:10px">SHA-256 snapshot</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-primary node-small">4. Implement<br><span style="font-size:10px">Apply change</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-green node-small">5. Validate<br><span style="font-size:10px">Did it work?</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-green node-small">6. Log<br><span style="font-size:10px">Changelog</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-secondary node-small">7. Report<br><span style="font-size:10px">If notable</span></div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top: 20px;">
+    <div>
+      <h3>Karpathy Loop</h3>
+      <p style="font-size: 13px; color: var(--text-dim); line-height: 1.6;">
+        Inspired by Andrej Karpathy's AutoResearch. Takes any skill, runs it against binary eval assertions, scores output, makes ONE change per cycle, re-tests, keeps if improved, reverts if not. Loops autonomously until interrupted or perfect score.
+      </p>
+      <div style="margin-top: 12px; font-family: monospace; font-size: 12px; color: var(--cyan);">
+        loop: eval → score → mutate → re-eval → keep/revert
+      </div>
+    </div>
+    <div>
+      <h3>Safety Mechanisms</h3>
+      <ul class="check-list">
+        <li>Full SHA-256 backup before every change</li>
+        <li>Automatic rollback if regression detected</li>
+        <li>50K token cap per improvement loop</li>
+        <li>All changes logged to Notion System Changes DB</li>
+        <li>Version tracked in CHANGELOG.md</li>
+        <li>Separate evaluator invocation (no self-grading)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 11: Finance & Compliance -->
+<div class="slide">
+  <h2>💰 Finance & Compliance Agents</h2>
+  <div class="two-col">
+    <div>
+      <h3 style="margin-bottom: 16px;">Treasurer Agent</h3>
+      <div class="diagram" style="padding: 20px;">
+        <div class="diagram-title">Financial Monitoring Flow</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="node node-cyan node-small" style="min-width: 100px;">Teller.io API</div>
+            <div class="arrow">→</div>
+            <div class="node node-secondary node-small">Transaction Sync</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="node node-secondary node-small" style="min-width: 100px;">Actual Budget</div>
+            <div class="arrow">→</div>
+            <div class="node node-orange node-small">Anomaly Detection</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="node node-secondary node-small" style="min-width: 100px;">Subscriptions</div>
+            <div class="arrow">→</div>
+            <div class="node node-red node-small">Renewal Alerts</div>
+          </div>
+        </div>
+      </div>
+      <p class="small" style="margin-top: 12px;">4 crons: daily sync (6 AM), renewal alerts (6:30 AM), weekly spend summary (Sun 8 AM), monthly report (1st of month)</p>
+    </div>
+    <div>
+      <h3 style="margin-bottom: 16px;">Compliance Agent</h3>
+      <div class="diagram" style="padding: 20px;">
+        <div class="diagram-title">Regulatory Monitoring</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="node node-blue node-small">Winn Ventures (BVI)</div>
+          <div class="node node-green node-small">Winn.solutions (CA)</div>
+          <div class="node node-pink node-small">Growing Mindfully (Preschool)</div>
+        </div>
+      </div>
+      <ul class="check-list" style="margin-top: 16px; font-size: 12px;">
+        <li>CCL licensing status tracking</li>
+        <li>Insurance renewal monitoring</li>
+        <li>Tax deadline alerts</li>
+        <li>Entity standing verification</li>
+        <li>Staff certification tracking</li>
+      </ul>
+      <p class="small" style="margin-top: 12px;">4 crons: daily check (7 AM), weekly summary (Mon 8:30 AM), monthly standing (1st), quarterly report</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 12: Winn AI Labs -->
+<div class="slide">
+  <h2>🚀 Winn AI Labs — Revenue Engine</h2>
+  <p class="subtitle">32 AI service products for Sacramento/Placer County SMBs — target: $10-20K/month</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Nightly Autonomous Product Builder (1 AM)</div>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap;">
+      <div class="node node-secondary node-small">Pick Next<br>Product</div>
+      <div class="arrow">→</div>
+      <div class="node node-blue node-small">Build Brand<br><span style="font-size:10px">Name, logo, copy</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-primary node-small">Build Website<br><span style="font-size:10px">GitHub Pages</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-orange node-small">Outreach<br><span style="font-size:10px">Templates</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-pink node-small">Ads + Marketing<br><span style="font-size:10px">Copy + targeting</span></div>
+      <div class="arrow">→</div>
+      <div class="node node-green node-small">Deploy ✓<br><span style="font-size:10px">Live site</span></div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top: 20px;">
+    <div class="card">
+      <div class="card-stat" style="font-size: 28px;">32</div>
+      <div class="card-label">Products Designed</div>
+      <p class="small" style="margin-top: 8px;">5 waves by build priority. Each has anxiety statement, value prop, pricing, TAM estimate.</p>
+    </div>
+    <div class="card">
+      <div class="card-stat" style="font-size: 28px;">2</div>
+      <div class="card-label">Products Built</div>
+      <p class="small" style="margin-top: 8px;">NeverMiss AI (live), WinnAILabs Gateway (AI readiness quiz). Nightly builder adding more.</p>
+    </div>
+    <div class="card">
+      <div class="card-stat" style="font-size: 28px;">$10-20K</div>
+      <div class="card-label">Monthly Target</div>
+      <p class="small" style="margin-top: 8px;">Warm leads → Jarred closes. The system generates leads, builds trust assets, Jarred does the human part.</p>
+    </div>
+  </div>
+
+  <div class="highlight-box" style="margin-top: 16px;">
+    <h3>The Play</h3>
+    <p class="small">"All you have to do is get me the warm leads, and I will be able to build trust with any business owner." Each product website = trust signal + lead capture. Each outreach template = personalized to prospect's pain. The agent stack IS the fulfillment engine.</p>
+  </div>
+</div>
+
+<!-- SLIDE 13: Daily Operations -->
+<div class="slide">
+  <h2>⏰ Daily Operations Schedule</h2>
+  <div class="scroll-content">
+    <div class="diagram">
+      <div class="diagram-title">Typical Day — Automated Operations</div>
+      <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0; font-size: 13px;">
+
+        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">6:00 AM</div>
+        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-green">Transaction Sync</span>
+          <span class="tag tag-blue">Contact Decay Review</span>
+          <span class="tag tag-purple">Evolution Pipeline #1</span>
+        </div>
+
+        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">6:30 AM</div>
+        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-orange">Renewal Alerts</span>
+          <span class="tag tag-blue">Scanner Morning Intel</span>
+          <span class="tag tag-red">Deadline Watcher</span>
+        </div>
+
+        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">7:00 AM</div>
+        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-green">Daily Digest</span>
+          <span class="tag tag-blue">Compliance Check</span>
+          <span class="tag tag-purple">Skill Health Check</span>
+          <span class="tag tag-orange">Email Triage Start</span>
+        </div>
+
+        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">8:00 AM</div>
+        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-green">GM Parent Auto-Drafter Start</span>
+          <span class="tag tag-orange">Invoice Monitor</span>
+        </div>
+
+        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">9-11 AM</div>
+        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-blue">Early Viral Detector #1</span>
+          <span class="tag tag-orange">Pending Item Reminders</span>
+          <span class="tag tag-green">Email Triage (30min cycles)</span>
+        </div>
+
+        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">12:00 PM</div>
+        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-green">Midday Pipeline Check</span>
+          <span class="tag tag-blue">Midday Thinker Scan</span>
+          <span class="tag tag-purple">Evolution Pipeline #2</span>
+        </div>
+
+        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">3-6 PM</div>
+        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-blue">Early Viral #3 & #4</span>
+          <span class="tag tag-orange">Pending Reminders</span>
+          <span class="tag tag-green">Executive 4 PM Update</span>
+        </div>
+
+        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">8:00 PM</div>
+        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-green">EOD Reconciliation</span>
+          <span class="tag tag-blue">Task Reconciliation</span>
+        </div>
+
+        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">8:30 PM</div>
+        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-pink">Evening Viral Scan + Why-Viral</span>
+        </div>
+
+        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">9:00 PM</div>
+        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-purple">Evolution Pipeline #3</span>
+          <span class="tag tag-green">GM FAQ Learner</span>
+        </div>
+
+        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">10-11 PM</div>
+        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-purple">Utilization Scan</span>
+          <span class="tag tag-purple">Nightly Self-Improvement</span>
+        </div>
+
+        <div style="color: var(--text-dim); padding: 8px 0; font-weight: 600;">1:00 AM</div>
+        <div style="padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-orange">Nightly Product Builder</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 14: Infrastructure -->
+<div class="slide">
+  <h2>🖥️ Infrastructure Map</h2>
+  <div class="two-col">
+    <div>
+      <div class="diagram" style="padding: 20px;">
+        <div class="diagram-title">Physical Infrastructure</div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="node node-primary" style="text-align: left; padding: 16px;">
+            <strong>Mac Mini (Local)</strong><br>
+            <span style="font-size: 11px; font-weight: 400;">
+              OpenClaw Gateway (port 18789)<br>
+              13 AI Agents<br>
+              Chroma Vector DB<br>
+              SQLite databases<br>
+              Gmail Push Handler (port 8788)
+            </span>
+          </div>
+
+          <div style="text-align: center; color: var(--text-dim); font-size: 12px;">
+            ↕ Tailscale VPN ↕
+          </div>
+
+          <div class="node node-orange" style="text-align: left; padding: 16px;">
+            <strong>Hetzner VPS (CX22)</strong><br>
+            <span style="font-size: 11px; font-weight: 400;">
+              n8n Community Edition (Docker)<br>
+              PostgreSQL<br>
+              4 active workflows<br>
+              IP: 80.71.235.165
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h3 style="margin-bottom: 16px;">Connected Services</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div class="card" style="padding: 12px;">
+          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Gmail (3 accounts)</p>
+          <p class="small" style="margin: 0;">Push + Polling + gog</p>
+        </div>
+        <div class="card" style="padding: 12px;">
+          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Notion</p>
+          <p class="small" style="margin: 0;">8 databases</p>
+        </div>
+        <div class="card" style="padding: 12px;">
+          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Slack</p>
+          <p class="small" style="margin: 0;">13 agent channels</p>
+        </div>
+        <div class="card" style="padding: 12px;">
+          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Signal</p>
+          <p class="small" style="margin: 0;">Direct messaging</p>
+        </div>
+        <div class="card" style="padding: 12px;">
+          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">GitHub Pages</p>
+          <p class="small" style="margin: 0;">Product websites</p>
+        </div>
+        <div class="card" style="padding: 12px;">
+          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Anthropic (OAuth)</p>
+          <p class="small" style="margin: 0;">Claude Opus + Sonnet</p>
+        </div>
+        <div class="card" style="padding: 12px;">
+          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Google Gemini</p>
+          <p class="small" style="margin: 0;">Embeddings + search</p>
+        </div>
+        <div class="card" style="padding: 12px;">
+          <p style="font-size: 12px; font-weight: 600; color: var(--text); margin: 0;">Perplexity</p>
+          <p class="small" style="margin: 0;">Web search API</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 15: Use Cases -->
+<div class="slide">
+  <h2>📋 Key Use Cases</h2>
+  <div class="scroll-content">
+    <div class="grid-2">
+      <div class="use-case">
+        <div class="use-case-title">📧 Inbox Zero</div>
+        <div class="use-case-desc">Every email classified, triaged, and actioned. Noise auto-archived. Important items surfaced with Slack interactive buttons. GM parent emails get auto-drafted responses.</div>
+        <div class="use-case-flow">gmail push → 3-layer scorer → P0-P3 → slack buttons → draft/archive</div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-title">🤝 Meeting Prep</div>
+        <div class="use-case-desc">24 hours before any meeting: auto-generate 7-section prep doc. CRM snapshot, recent activity, conversation starters, red flags, desired outcome.</div>
+        <div class="use-case-flow">calendar → lobster pipeline → CRM + web research → 7-section brief → deliver 1hr before</div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-title">🌱 Parent Enrollment</div>
+        <div class="use-case-desc">Inquiry detected → auto-draft in Jarred's voice → pipeline tracked in Notion → Brightwheel packets auto-linked → FAQ continuously learning.</div>
+        <div class="use-case-flow">parent email → GM agent → auto-draft → notion pipeline → brightwheel → enrolled</div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-title">🔍 Viral Intelligence</div>
+        <div class="use-case-desc">4x daily scanning for early viral posts. When detected: decompose into 12 factors, score against model, alert if relevant to Jarred's domains.</div>
+        <div class="use-case-flow">scanner cron → perplexity → velocity check → why-viral → alert if tier 1</div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-title">💰 Financial Oversight</div>
+        <div class="use-case-desc">Daily transaction sync, anomaly detection, renewal tracking. Weekly spend summaries. Monthly consolidated reports across all entities.</div>
+        <div class="use-case-flow">teller.io → actual budget → anomaly detection → renewal alerts → monthly report</div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-title">⚖️ Regulatory Compliance</div>
+        <div class="use-case-desc">Track licensing, insurance, tax deadlines across 3 entities (BVI, CA, preschool). Daily checks, weekly summaries, quarterly reports.</div>
+        <div class="use-case-flow">compliance DB → daily check → deadline alerts → standing verification → quarterly report</div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-title">🚀 Product Launch Pipeline</div>
+        <div class="use-case-desc">32 AI products for local SMBs. Nightly builder: picks product → builds brand → creates website → generates outreach → deploys to GitHub Pages.</div>
+        <div class="use-case-flow">product queue → brand → website → outreach → ads → deploy → warm leads</div>
+      </div>
+
+      <div class="use-case">
+        <div class="use-case-title">👥 Relationship Decay</div>
+        <div class="use-case-desc">Every contact has a strength score that decays weekly. Below threshold → auto-generate personalized reach-out with 2-3 angles from CRM context.</div>
+        <div class="use-case-flow">daily decay calc → identify stale contacts → generate angles → stage draft → jarred approves</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 16: Timeline -->
+<div class="slide">
+  <h2>📅 Build Timeline</h2>
+  <div class="scroll-content">
+    <div class="two-col">
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">Feb 11 — Day 1</div>
+          <div class="timeline-title">v1.0 — Foundation</div>
+          <div class="timeline-desc">OpenClaw deployed, Signal configured, ClickUp integrated, team bindings set up</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Feb 11-13</div>
+          <div class="timeline-title">Virality Intelligence</div>
+          <div class="timeline-desc">X monitoring skill, breakout scoring formula, 3-tier alert system</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Mar 5</div>
+          <div class="timeline-title">VPS & n8n</div>
+          <div class="timeline-desc">Hetzner provisioned, n8n deployed with Docker + Postgres</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Mar 9 — v2.0</div>
+          <div class="timeline-title">The Big Build</div>
+          <div class="timeline-desc">12-agent architecture, Notion integration, email system, 20+ crons, belief system</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Mar 10</div>
+          <div class="timeline-title">Belief System</div>
+          <div class="timeline-desc">37 entries, 136 thinkers, cluster map, EXTINCTION book concept</div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">Mar 13</div>
+          <div class="timeline-title">GM Enrollment</div>
+          <div class="timeline-desc">10-step playbook, Brightwheel integration, 3 families processed</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Mar 14 — v2.3</div>
+          <div class="timeline-title">Autonomy & Self-Healing</div>
+          <div class="timeline-desc">GREEN/YELLOW/RED tiers, error pattern scanner, self-healing heartbeat</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Mar 15-16</div>
+          <div class="timeline-title">Email Intelligence</div>
+          <div class="timeline-desc">Thread DB, 3-layer scorer, Gmail push, Network CRM, Slack triage buttons</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Mar 17 — v2.5</div>
+          <div class="timeline-title">12-Hour Session</div>
+          <div class="timeline-desc">Self-evolution, Chroma DB, Obsidian, viral DB, Karpathy loop, Treasurer + Compliance agents</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Mar 18</div>
+          <div class="timeline-title">Revenue Engine</div>
+          <div class="timeline-desc">Winn AI Labs, 32 products, NeverMiss AI deployed, nightly builder active</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 17: Cost & Metrics -->
+<div class="slide">
+  <h2>📊 Cost & Performance</h2>
+  <div class="two-col">
+    <div>
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-stat">~$160<span style="font-size: 16px; font-weight: 400;">/day</span></div>
+        <div class="card-label">Current Run Rate ($4,800/month)</div>
+      </div>
+
+      <h3 style="margin-bottom: 12px;">Cost Breakdown by Component</h3>
+      <div class="metric-bar">
+        <span class="metric-label">Opus (conversations)</span>
+        <div class="metric-track"><div class="metric-fill" style="width: 45%; background: var(--accent);"></div></div>
+        <span class="metric-value">~45%</span>
+      </div>
+      <div class="metric-bar">
+        <span class="metric-label">Sonnet (cron jobs)</span>
+        <div class="metric-track"><div class="metric-fill" style="width: 35%; background: var(--cyan);"></div></div>
+        <span class="metric-value">~35%</span>
+      </div>
+      <div class="metric-bar">
+        <span class="metric-label">Infrastructure</span>
+        <div class="metric-track"><div class="metric-fill" style="width: 12%; background: var(--orange);"></div></div>
+        <span class="metric-value">~12%</span>
+      </div>
+      <div class="metric-bar">
+        <span class="metric-label">APIs (Gemini, etc)</span>
+        <div class="metric-track"><div class="metric-fill" style="width: 8%; background: var(--green);"></div></div>
+        <span class="metric-value">~8%</span>
+      </div>
+    </div>
+    <div>
+      <h3 style="margin-bottom: 16px;">Performance Metrics (72hr baseline)</h3>
+      <div class="grid-2" style="gap: 12px;">
+        <div class="card" style="padding: 16px;">
+          <div class="card-stat" style="font-size: 24px;">682</div>
+          <div class="card-label">Main agent turns</div>
+        </div>
+        <div class="card" style="padding: 16px;">
+          <div class="card-stat" style="font-size: 24px;">81%</div>
+          <div class="card-label">Cache hit rate</div>
+        </div>
+        <div class="card" style="padding: 16px;">
+          <div class="card-stat" style="font-size: 24px;">90s</div>
+          <div class="card-label">Avg response time</div>
+        </div>
+        <div class="card" style="padding: 16px;">
+          <div class="card-stat" style="font-size: 24px;">37</div>
+          <div class="card-label">Active cron jobs</div>
+        </div>
+      </div>
+
+      <div class="highlight-box" style="margin-top: 16px;">
+        <h3>Optimization Levers</h3>
+        <ul class="check-list" style="font-size: 12px;">
+          <li>Consolidate low-value crons (estimated 30% reduction)</li>
+          <li>Aggressive context compression</li>
+          <li>Kill silent/empty cron runs earlier</li>
+          <li>Reduce heartbeat frequency</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 18: What's Next -->
+<div class="slide">
+  <h2>🔮 What's Next</h2>
+  <div class="grid-2">
+    <div>
+      <h3 style="margin-bottom: 16px;">Active Frontier</h3>
+      <div class="use-case" style="border-left-color: var(--green);">
+        <div class="use-case-title">Winn AI Labs Product Pipeline</div>
+        <div class="use-case-desc">32 products in queue. Nightly builder deploying one per night. NeverMiss AI live, Gateway built.</div>
+      </div>
+      <div class="use-case" style="border-left-color: var(--orange);">
+        <div class="use-case-title">Reddit Lead Generation</div>
+        <div class="use-case-desc">Monitor subreddits for pain points → helpful replies → passive profile conversion. Near-zero cost alternative to $160/day ad spend.</div>
+      </div>
+      <div class="use-case" style="border-left-color: var(--blue);">
+        <div class="use-case-title">Cost Optimization</div>
+        <div class="use-case-desc">Audit cron spend, consolidate jobs, kill low-value runs. Target: 40-50% cost reduction.</div>
+      </div>
+    </div>
+    <div>
+      <h3 style="margin-bottom: 16px;">Phase 2 & 3 Agents</h3>
+      <div class="card" style="margin-bottom: 12px; border-color: rgba(245, 158, 11, 0.4);">
+        <h3 style="color: var(--orange);">Phase 2 — Pending Gates</h3>
+        <ul class="check-list" style="font-size: 12px;">
+          <li>WMG (Winn.ventures deals, Mima)</li>
+          <li>Legal (contracts, advisory)</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color: rgba(139, 92, 246, 0.4);">
+        <h3 style="color: var(--accent2);">Phase 3 — Intelligence Layer</h3>
+        <ul class="check-list" style="font-size: 12px;">
+          <li>Analyst (deep reasoning)</li>
+          <li>Voice (content in Jarred's voice)</li>
+          <li>Curator (KB governance)</li>
+        </ul>
+      </div>
+
+      <div class="highlight-box" style="margin-top: 16px;">
+        <h3>Revenue Goal</h3>
+        <p style="font-size: 14px; color: var(--text); line-height: 1.6;">
+          The system generates warm leads.<br>
+          Jarred closes deals.<br>
+          Target: $10-20K/month additional revenue.<br>
+          <strong>The agent stack IS the fulfillment engine.</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="nav">
+  <button onclick="prev()" id="btnPrev">←</button>
+  <button onclick="next()" id="btnNext">→</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const progress = document.getElementById('progress');
+  const counter = document.getElementById('counter');
+  let current = 0;
+
+  function show(index) {
+    slides.forEach((s, i) => {
+      s.classList.remove('active', 'exit');
+      if (i < index) s.classList.add('exit');
+    });
+    slides[index].classList.add('active');
+    progress.style.width = ((index + 1) / slides.length * 100) + '%';
+    counter.textContent = (index + 1) + ' / ' + slides.length;
+  }
+
+  function next() {
+    if (current < slides.length - 1) { current++; show(current); }
+  }
+
+  function prev() {
+    if (current > 0) { current--; show(current); }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+  });
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); }
+  });
+
+  show(0);
+</script>
+
+</body>
+</html>
